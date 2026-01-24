@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Connexion Administrateur</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+</head>
+<body>
+
+<div class="login-container">
+    <div class="login-card">
+        <h1>Admin</h1>
+        <p>Connexion au système</p>
+
+        <form method="post">
+            <div class="input-group">
+                <input type="text" name="username" required>
+                <label>Nom d'utilisateur</label>
+            </div>
+
+            <div class="input-group">
+                <input type="password" name="password" required>
+                <label>Mot de passe</label>
+            </div>
+
+            <button type="submit">Se connecter</button>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

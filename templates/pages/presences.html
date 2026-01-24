@@ -1,0 +1,24 @@
+<div class="presences-page">
+    <h2>Gestion des présences</h2>
+    <p>Suivi et consultation des présences.</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Employé</th>
+                <th>Date</th>
+                <th>Heure d'arrivée</th>
+                <th>Heure de départ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for presence in presences %}
+            <tr>
+                <td>{{ presence.employe_name }}</td>
+                <td>{{ presence.date }}</td>
+                <td>{{ presence.check_in }}</td>
+                <td>{{ presence.check_out }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,25 @@
+{% macro render_photo(slot_id, photo_name, input_name) %}
+<div class="photo-slot">
+    <div class="photo-preview" id="preview-{{ slot_id }}">
+        {% if photo_name %}
+            <img src="{{ get_photo_url(photo_name) }}" class="photo-img full">
+        {% else %}
+            <div class="photo-placeholder">
+                <i class="fa-solid fa-user"></i>
+            </div>
+        {% endif %}
+    </div>
+
+    <input type="file"
+           name="{{ input_name }}"
+           accept="image/*"
+           onchange="previewPhoto(this, 'preview-{{ slot_id }}')">
+
+    <button type="button"
+            class="delete-photo"
+            onclick="clearPhoto('preview-{{ slot_id }}', '{{ input_name }}')">
+        🗑 Supprimer
+    </button>
+</div>
+{% endmacro %}
+

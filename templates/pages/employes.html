@@ -1,0 +1,190 @@
+<div class="employes-page">
+    <h2>Gestion des employés</h2>
+    <p>Ajouter, consulter et supprimer les employés.</p>
+
+    <button class="floating-add" onclick="openAdd()">+</button>
+
+    <div class="table-wrapper">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>N</th>
+                    <th>Photo</th>
+                    <th>Matricule</th>
+                    <th>Nom</th>
+                    <th>Prénom</th>
+                    <th>Poste</th>
+                    <th>Date création</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for employe in employes %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>
+                        <a href="javascript:void(0)"
+                            onclick="openPhotosPopup('{{ employe.id }}', '{{ employe.nom }}', '{{ employe.prenom }}', '{{ employe.photo_reference }}')">
+                            {% if employe.photo_reference %}
+                            <img src="{{ get_photo_url(employe.photo_reference) }}" width="45" height="45"
+                                style="border-radius:50%" alt="Photo">
+                            {% else %}
+                            <i class="fa-solid fa-user" style="font-size:24px;color:#888"></i>
+                            {% endif %}
+                        </a>
+                    </td>
+                    <td>{{ employe.matricule }}</td>
+                    <td>{{ employe.nom }}</td>
+                    <td>{{ employe.prenom }}</td>
+                    <td>{{ employe.poste }}</td>
+                    <td>{{ employe.created_at }}</td>
+
+                    <td>
+                        <button onclick="openEdit(
+                        '{{ employe.id }}',
+                        '{{ employe.matricule }}',
+                        '{{ employe.nom }}',
+                        '{{ employe.prenom }}',
+                        '{{ employe.poste }}',
+                        '{{ employe.photo_reference }}'
+                        )">✏️</button>
+
+                        <button onclick="confirmDelete('{{ employe.id }}')">🗑</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+    </div>
+
+
+    <div id="popupForm" class="modal">
+        <div class="modal-content">
+            <span onclick="closePopup()" style="cursor:pointer">&times;</span>
+
+            <h3 id="popupTitle">Ajouter un employé</h3>
+
+            <form id="employeForm" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="id" id="empId">
+
+                <input name="matricule" id="matricule" placeholder="Matricule" required>
+                <input name="nom" id="nom" placeholder="Nom" required>
+                <input name="prenom" id="prenom" placeholder="Prénom" required>
+                <input name="poste" id="poste" placeholder="Poste">
+
+                <div class="photo-container">
+                    <!-- Le contenu sera généré par JavaScript -->
+                </div>
+
+                <div class="button-group">
+                    <button type="submit">✓ Valider</button>
+                    <button type="button" class="cancel" onclick="closePopup()">✕ Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="photoPopup">
+        <div class="modal-content">
+            <span onclick="closePopup()" style="cursor:pointer">&times;</span>
+
+            <h3><!-- Le contenu sera généré par JavaScript --></h3>
+
+            <form method="post" enctype="multipart/form-data">
+
+                <div class="photo-slots">
+                    <div>
+                        <h4>Face</h4>
+                        <!-- Le contenu sera généré par JavaScript -->
+                    </div>
+
+                    <div>
+                        <h4>Profil gauche</h4>
+                        <!-- Le contenu sera généré par JavaScript -->
+                    </div>
+
+                    <div>
+                        <h4>Profil droit</h4>
+                        <!-- Le contenu sera généré par JavaScript -->
+                    </div>
+
+                </div>
+
+                <div class="button-group">
+                    <button type="submit">✓ Valider</button>
+                    <button type="button" class="cancel" onclick="closePopup()">✕ Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/photos.js') }}"></script>
+
+    <script>
+        const UPLOAD_FOLDER = "../../../static/uploads/"; // Assurez-vous que le chemin est correct
+
+        function openAdd() {
+            document.getElementById("popupTitle").innerText = "Ajouter un employé";
+            document.getElementById("employeForm").action = "/dashboard/employes/add";
+            document.getElementById("employeForm").reset();
+
+            const photoContainer = document.querySelector('.photo-container');
+            photoContainer.innerHTML = generatePhotoInputHTML("main", null, "photo");
+
+            document.getElementById("popupForm").style.display = "flex";
+        }
+
+        function openEdit(id, matricule, nom, prenom, poste, photo_name) {
+            document.getElementById("popupTitle").innerText = "Modifier l’employé";
+            document.getElementById("employeForm").action = "/dashboard/employes/edit/" + id;
+
+            document.getElementById("empId").value = id;
+            document.getElementById("matricule").value = matricule;
+            document.getElementById("nom").value = nom;
+            document.getElementById("prenom").value = prenom;
+            document.getElementById("poste").value = poste;
+
+            const url = (photo_name && photo_name !== 'None') ? UPLOAD_FOLDER + photo_name : null;
+            const photoContainer = document.querySelector('.photo-container');
+            photoContainer.innerHTML = generatePhotoInputHTML("main", url, "photo");
+
+            document.getElementById("popupForm").style.display = "flex";
+        }
+
+        function confirmDelete(id) {
+            if (confirm("Voulez-vous vraiment supprimer cet employé ?")) {
+                window.location.href = `/dashboard/employes/delete/${id}`;
+            }
+        }
+
+        // NOUVELLE FONCTION POUR LES MULTIPLES PHOTOS
+        function openPhotosPopup(id, nom, prenom, photo_face) {
+            const popup = document.getElementById("photoPopup");
+            popup.querySelector('h3').innerText = `Photos de ${nom} ${prenom}`;
+            popup.querySelector('form').action = `/dashboard/employes/photos/${id}`;
+
+            const slots = popup.querySelectorAll('.photo-slots > div');
+            const urlFace = (photo_face && photo_face !== 'None') ? UPLOAD_FOLDER + photo_face : null;
+
+            // Injection dynamique
+            slots[0].innerHTML = `<h4>Face</h4>` + generatePhotoInputHTML("face", urlFace, "photo_face");
+            slots[1].innerHTML = `<h4>Profil gauche</h4>` + generatePhotoInputHTML("left", null, "photo_left");
+            slots[2].innerHTML = `<h4>Profil droit</h4>` + generatePhotoInputHTML("right", null, "photo_right");
+
+            popup.style.display = "flex";
+        }
+
+        function closePopup(id) {
+            // Si id n'est pas fourni, on essaie de fermer les deux
+            if (id) {
+                document.getElementById(id).style.display = "none";
+            } else {
+                document.getElementById("popupForm").style.display = "none";
+                document.getElementById("photoPopup").style.display = "none";
+            }
+        }
+    </script>
+
+</div>

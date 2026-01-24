@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - PresenceApp</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+
+    {% if page_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/' ~ page_css) }}">
+    {% endif %}
+
+</head>
+
+<body>
+
+    <div class="app-container">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <i class="fa-solid fa-fingerprint"></i>
+                <span>PresenceApp</span>
+            </div>
+            <nav class="sidebar-menu">
+
+                <a href="{{ url_for('dashboard.dashboard') }}" class="{% if active_page == 'stats' %}active{% endif %}">
+                    <i class="fa-solid fa-chart-line"></i>
+                    Statistiques
+                </a>
+
+                <a href="{{ url_for('employe.employes') }}" class="{% if active_page == 'employes' %}active{% endif %}">
+                    <i class="fa-solid fa-users"></i>
+                    Employés
+                </a>
+
+                <a href="{{ url_for('presence.presence') }}"
+                    class="{% if active_page == 'presences' %}active{% endif %}">
+                    <i class="fa-solid fa-clock"></i>
+                    Présences
+                </a>
+
+                <a href="{{ url_for('apropos.apropos') }}" class="{% if active_page == 'apropos' %}active{% endif %}">
+                    <i class="fa-solid fa-circle-info"></i>
+                    À propos
+                </a>
+
+                <div class="menu-separator"></div>
+
+                <a href="#" class="logout">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    Déconnexion
+                </a>
+
+            </nav>
+
+
+        </aside>
+
+        <!-- MAIN -->
+        <main class="main-content">
+
+            <!-- HEADER -->
+            <header class="header">
+                <div class="header-left">
+                    <h1>Tableau de bord</h1>
+                </div>
+
+                <div class="header-right">
+                    <button title="Paramètres">
+                        <i class="fa-solid fa-gear"></i>
+                    </button>
+                    <button title="Compte">
+                        <i class="fa-solid fa-user-circle"></i>
+                    </button>
+                    <button title="À propos">
+                        <i class="fa-solid fa-circle-info"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- CONTENT FRAME -->
+            <section class="page-container">
+                <div class="page-frame">
+                    {% include page %}
+                </div>
+            </section>
+
+
+        </main>
+
+    </div>
+
+</body>
+
+</html>
