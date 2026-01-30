@@ -4,11 +4,14 @@ import os
 
 
 def get_connection(database='gestion_presence'):
-    config = DB_CONFIG.copy()
-    if database:
-        config["database"] = database
-
-    return mysql.connector.connect(**config)
+    return mysql.connector.connect(
+        host=os.getenv('DB_HOST', 'localhost'),
+        port=os.getenv('DB_PORT', '3306'),
+        user=os.getenv('DB_USER', 'presenceapp'),
+        password=os.getenv('DB_PASSWORD', 'presenceapp'),
+        database=os.getenv('DB_NAME', 'gestion_presence'),
+        # Optionnel : ssl_ca='path/to/ca.pem' si Aiven l'exige
+    )
 
 
 def create_database():
