@@ -2,6 +2,9 @@
     <h2>Gestion des employés</h2>
     <p>Ajouter, consulter et supprimer les employés.</p>
 
+    <span id="data-upload-folder" data-upload-folder="{{ get_photo_url('i') }}">{{ get_photo_url('i')
+        }}</span>
+
     <button class="floating-add" onclick="openAdd()">+</button>
 
     <div class="table-wrapper">
@@ -25,9 +28,9 @@
                     <td>{{ loop.index }}</td>
                     <td>
                         <a href="javascript:void(0)"
-                            onclick="openPhotosPopup('{{ employe.id }}', '{{ employe.nom }}', '{{ employe.prenom }}', '{{ employe.photo_reference }}')">
-                            {% if employe.photo_reference %}
-                            <img src="{{ get_photo_url(employe.photo_reference) }}" width="45" height="45"
+                            onclick='openPhotosPopup("{{ employe.id }}", "{{ employe.nom }}", "{{ employe.prenom }}", `{{ employe.photos | tojson | safe }}` )'>
+                            {% if employe.photos.face %}
+                            <img src="{{ get_photo_url(employe.photos.face ) }}" width="45" height="45"
                                 style="border-radius:50%" alt="Photo">
                             {% else %}
                             <i class="fa-solid fa-user" style="font-size:24px;color:#888"></i>
@@ -47,7 +50,7 @@
                         '{{ employe.nom }}',
                         '{{ employe.prenom }}',
                         '{{ employe.poste }}',
-                        '{{ employe.photo_reference }}'
+                        '{{ employe.photos.face}}'
                         )">✏️</button>
 
                         <button onclick="confirmDelete('{{ employe.id }}')">🗑</button>
@@ -123,7 +126,7 @@
     <script src="{{ url_for('static', filename='js/photos.js') }}"></script>
 
     <script>
-        const UPLOAD_FOLDER = "../../../static/uploads/"; // Assurez-vous que le chemin est correct
+        const UPLOAD_FOLDER = document.getElementById('data-upload-folder').getAttribute('data-upload-folder').slice(0, -1);
 
         function openAdd() {
             document.getElementById("popupTitle").innerText = "Ajouter un employé";
@@ -160,19 +163,20 @@
         }
 
         // NOUVELLE FONCTION POUR LES MULTIPLES PHOTOS
-        function openPhotosPopup(id, nom, prenom, photo_face) {
+        function openPhotosPopup(id, nom, prenom, photos) {
+            const parsedPhotos = JSON.parse(photos);
+            const urlFace = (parsedPhotos.face) ? UPLOAD_FOLDER + parsedPhotos.face : null;
+            const urlProfilGauche = (parsedPhotos.profil_gauche) ? UPLOAD_FOLDER + parsedPhotos.profil_gauche : null;
+            const urlProfilDroit = (parsedPhotos.profil_droit) ? UPLOAD_FOLDER + parsedPhotos.profil_droit : null;
+
             const popup = document.getElementById("photoPopup");
+            const slots = popup.querySelectorAll('.photo-slots > div');
+
             popup.querySelector('h3').innerText = `Photos de ${nom} ${prenom}`;
             popup.querySelector('form').action = `/dashboard/employes/photos/${id}`;
-
-            const slots = popup.querySelectorAll('.photo-slots > div');
-            const urlFace = (photo_face && photo_face !== 'None') ? UPLOAD_FOLDER + photo_face : null;
-
-            // Injection dynamique
             slots[0].innerHTML = `<h4>Face</h4>` + generatePhotoInputHTML("face", urlFace, "photo_face");
-            slots[1].innerHTML = `<h4>Profil gauche</h4>` + generatePhotoInputHTML("left", null, "photo_left");
-            slots[2].innerHTML = `<h4>Profil droit</h4>` + generatePhotoInputHTML("right", null, "photo_right");
-
+            slots[1].innerHTML = `<h4>Profil gauche</h4>` + generatePhotoInputHTML("profil_gauche", urlProfilGauche, "photo_profil_gauche");
+            slots[2].innerHTML = `<h4>Profil droit</h4>` + generatePhotoInputHTML("profil_droit", urlProfilDroit, "photo_profil_droit");
             popup.style.display = "flex";
         }
 

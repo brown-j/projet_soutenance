@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from controllers.login_controller import login_bp
 from controllers.dashboard_controller import dashboard_bp
@@ -8,6 +9,16 @@ from utils.photos import get_photo_url
 
 app = Flask(__name__)
 app.secret_key = "super_secret_key_2026"
+
+# 1. Configuration du dossier
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static/uploads')
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# 2. Création des dossiers au démarrage (C'est ici qu'il faut le faire !)
+# On crée le dossier principal et le sous-dossier 'photos'
+os.makedirs(os.path.join(UPLOAD_FOLDER, 'photos'), exist_ok=True)
 
 app.register_blueprint(login_bp)
 app.register_blueprint(dashboard_bp)

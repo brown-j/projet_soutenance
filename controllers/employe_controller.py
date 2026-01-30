@@ -1,14 +1,13 @@
-from flask import Blueprint, render_template, request, redirect, url_for, abort
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 
+import os
 from services.employe_service import (
     get_all_employes,
     create_employe,
     delete_employe,
     get_employe_by_id,
-    update_employe,
-    save_employe_photo,
-    delete_employe_photo
 )
+from services.visage_service import upsert_visage
 
 employe_bp = Blueprint("employe", __name__)
 
@@ -20,14 +19,7 @@ def add_employe():
     poste = request.form.get("poste")
     photo = request.files.get("photo")
 
-    employe_id = create_employe(matricule, nom, prenom, poste, None)
-
-    if photo and photo.filename:
-        filename = save_employe_photo(photo, employe_id)
-        update_employe(
-            id=employe_id,
-            photo_reference=filename
-        )
+    employe_id = create_employe(matricule, nom, prenom, poste)
 
     return redirect(url_for("employe.employes"))
 
@@ -47,13 +39,7 @@ def employes():
 
 @employe_bp.route("/dashboard/employes/delete/<int:id>")
 def delete(id):
-    employe = get_employe_by_id(id)
-
-    if employe:
-        if employe.get("photo_reference"):
-            delete_employe_photo(employe["photo_reference"])
-        delete_employe(id)
-
+    delete_employe(id)
     return redirect(url_for("employe.employes"))
 
 
@@ -65,15 +51,29 @@ def edit_employe(id):
     poste = request.form.get("poste")
     photo = request.files.get("photo")
 
-    if photo and photo.filename:
-        employe = get_employe_by_id(id)
-        if employe and employe.get("photo_reference"):
-            delete_employe_photo(employe["photo_reference"])
+    #update_employe(id, matricule, nom, prenom, poste, photo)
 
-        filename = save_employe_photo(photo, id)
-        photo = filename
+    return redirect(url_for("employe.employes"))
 
-    update_employe(id, matricule, nom, prenom, poste, photo)
+
+@employe_bp.route('/dashboard/employes/photos/<int:id>', methods=['POST'])
+def upload_photos(id):
+    employe = get_employe_by_id(id)
+
+    if not employe:
+        flash("Employé introuvable.", "danger")
+        return redirect(url_for("employe.employes"))
+
+    for type_vue in ['face', 'profil_gauche', 'profil_droit']:
+        photo = request.files.get(f'photo_{type_vue}')
+        if photo and photo.filename != '':
+            # On passe l'objet fichier directement
+            resultat = upsert_visage(id, type_vue, photo)
+        
+            if resultat:
+                flash(f"Photo {type_vue} enregistrée !", "success")
+            else:
+                flash(f"Erreur : Visage {type_vue} non détecté.", "danger")
 
     return redirect(url_for("employe.employes"))
 
