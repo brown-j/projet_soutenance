@@ -1,11 +1,14 @@
-# Utilise une image Python légère
+# 1. Utilise une image Python légère
 FROM python:3.10-slim
 
-# Évite que Python génère des fichiers .pyc et permet l'affichage des logs en temps réel
+# 2. Variables d'environnement pour Python et la compilation
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+# Force la compilation sur un seul cœur pour économiser la RAM
+ENV MAKEFLAGS="-j1"
+ENV CMAKE_BUILD_PARALLEL_LEVEL=1
 
-# Installation des dépendances système nécessaires pour compiler dlib et opencv
+# 3. Installation des dépendances système (OBLIGATOIRE pour dlib/opencv)
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
@@ -16,20 +19,26 @@ RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# Définit le dossier de travail
+# 4. Définit le dossier de travail
 WORKDIR /app
 
-# Copie le fichier des dépendances
-COPY requirements.txt .
+# 5. Installation des dépendances Python par étapes pour gérer la mémoire
+# D'abord les bibliothèques légères
+RUN pip install --no-cache-dir \
+    Flask \
+    gunicorn \
+    python-dotenv \
+    mysql-connector-python \
+    "numpy<2.0.0" \
+    Pillow \
+    opencv-python-headless
 
-# Installe les dépendances Python (le cache est désactivé pour économiser de l'espace)
-RUN pip install --no-cache-dir -r requirements.txt
+# Ensuite face-recognition (C'est ici que le flag CMAKE_BUILD_PARALLEL_LEVEL=1 est crucial)
+RUN pip install --no-cache-dir face-recognition
 
-# Copie tout le reste du code
+# 6. Copie le reste du code du projet
 COPY . .
 
-# Définit le port par défaut (Render injectera sa propre valeur via la variable $PORT)
+# 7. Configuration du port et lancement
 ENV PORT 10000
-
-# Commande pour lancer l'application avec Gunicorn
 CMD ["sh", "-c", "gunicorn app:app --bind 0.0.0.0:$PORT"]
