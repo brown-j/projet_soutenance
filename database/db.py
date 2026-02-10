@@ -2,18 +2,17 @@ import mysql.connector
 from database.config import DB_CONFIG
 import os
 
-
-def get_connection(database='gestion_presence'):
-    config = DB_CONFIG.copy()
-    if database:
-        config["database"] = database
-
-    conn = mysql.connector.connect(
-        **config,
-        ssl_ca='/etc/ssl/certs/ca-certificates.crt'
-    )
-
-    return conn
+def get_connection():
+    config = {
+        'host': os.environ.get('MYSQL_HOST'),
+        'user': os.environ.get('MYSQL_USER'),
+        'password': os.environ.get('MYSQL_PASSWORD'),
+        'database': os.environ.get('MYSQL_DB'),
+        'port': os.environ.get('MYSQL_PORT', 3306),
+        # Ajoute cette ligne pour le SSL obligatoire sur Aiven
+        'ssl_ca': '/etc/ssl/certs/ca-certificates.crt'
+    }
+    return mysql.connector.connect(**config)
 
 def create_database():
     """Crée la base de données en important schema.sql"""
