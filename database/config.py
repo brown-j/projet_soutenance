@@ -3,7 +3,8 @@ DB_CONFIG = {
     "user": "presenceapp",
     "password": "presenceapp",
     "auth_plugin": "mysql_native_password",
-    "ssl_disabled": True
+    "ssl_disabled": True,
+    'use_pure': True
 }
 
 REDIS_URL = "redis://localhost:6379/0"

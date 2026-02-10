@@ -4,15 +4,20 @@ import os
 
 def get_connection():
     config = {
-        'host': os.environ.get('MYSQL_HOST'),
-        'user': os.environ.get('MYSQL_USER'),
-        'password': os.environ.get('MYSQL_PASSWORD'),
-        'database': os.environ.get('MYSQL_DB'),
-        'port': os.environ.get('MYSQL_PORT', 3306),
-        # Ajoute cette ligne pour le SSL obligatoire sur Aiven
-        'ssl_ca': '/etc/ssl/certs/ca-certificates.crt'
+        'host': os.getenv('MYSQL_HOST', '127.0.0.1'),
+        'port': int(os.getenv('MYSQL_PORT', 3306)),
+        'user': os.getenv('MYSQL_USER', 'presenceapp'),
+        'password': os.getenv('MYSQL_PASSWORD', 'presenceapp'),
+        'database': os.getenv('MYSQL_DB', 'gestion_presence'),
+        'use_pure': True 
     }
+    
+    # SSL : Uniquement si on n'est pas sur le port local
+    if config['port'] != 3306:
+        config['ssl_ca'] = '/etc/ssl/certs/ca-certificates.crt'
+
     return mysql.connector.connect(**config)
+
 
 def create_database():
     """Crée la base de données en important schema.sql"""
