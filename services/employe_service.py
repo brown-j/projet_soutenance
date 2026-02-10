@@ -21,6 +21,37 @@ def create_employe(matricule, nom, prenom, poste):
     cursor.close()
     conn.close()
 
+    return cursor.lastrowid  # Retourne l'ID de l'employé créé
+
+def update_employe(id_emp, matricule, nom, prenom, poste):
+    try:
+        # Connexion à ta base (remplace 'database.db' par ton fichier)
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        # Requête SQL sécurisée (on utilise des ? pour éviter les injections SQL)
+        sql = """
+            UPDATE employes 
+            SET matricule = %s, nom = %s, prenom = %s, poste = %s 
+            WHERE id = %s
+        """
+        params = (matricule, nom, prenom, poste, id_emp)
+        
+        cursor.execute(sql, params)
+        conn.commit()
+        
+        # On vérifie si une ligne a bien été modifiée
+        if cursor.rowcount > 0:
+            result = {"status": "success", "message": "Employé mis à jour !"}
+        else:
+            result = {"status": "error", "message": "Aucun employé trouvé avec cet ID."}
+            
+        conn.close()
+        return result
+
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
 
 def get_employe_by_id(employe_id):
     conn = get_connection()

@@ -6,6 +6,7 @@ from services.employe_service import (
     create_employe,
     delete_employe,
     get_employe_by_id,
+    update_employe,
 )
 from services.visage_service import upsert_visage
 
@@ -17,9 +18,10 @@ def add_employe():
     nom = request.form["nom"]
     prenom = request.form["prenom"]
     poste = request.form.get("poste")
-    photo = request.files.get("photo")
+    photo = request.files.get("photo_face")
 
     employe_id = create_employe(matricule, nom, prenom, poste)
+    upsert_visage(employe_id, "face", photo)
 
     return redirect(url_for("employe.employes"))
 
@@ -49,9 +51,15 @@ def edit_employe(id):
     nom = request.form["nom"]
     prenom = request.form["prenom"]
     poste = request.form.get("poste")
-    photo = request.files.get("photo")
+    photo = request.files.get("photo_face")
 
-    #update_employe(id, matricule, nom, prenom, poste, photo)
+    result = update_employe(id, matricule, nom, prenom, poste)
+
+    if result["status"] == "success":
+        upsert_visage(id, "face", photo)
+        print(result["message"])
+    else:
+        print(f"Erreur : {result['message']}")
 
     return redirect(url_for("employe.employes"))
 

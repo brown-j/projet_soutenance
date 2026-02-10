@@ -8,8 +8,12 @@ def get_connection(database='gestion_presence'):
     if database:
         config["database"] = database
 
-    return mysql.connector.connect(**config)
+    conn = mysql.connector.connect(
+        **config,
+        ssl_ca='/etc/ssl/certs/ca-certificates.crt'
+    )
 
+    return conn
 
 def create_database():
     """Crée la base de données en important schema.sql"""
