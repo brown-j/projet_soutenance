@@ -5,7 +5,9 @@ from controllers.dashboard_controller import dashboard_bp
 from controllers.employe_controller import employe_bp
 from controllers.presence_controller import presence_bp
 from controllers.apropos_controller import apropos_bp
+from controllers.video_controller import video_bp
 from utils.photos import get_photo_url
+from celery_worker import app as celery_app
 
 app = Flask(__name__)
 app.secret_key = "super_secret_key_2026"
@@ -25,6 +27,9 @@ app.register_blueprint(dashboard_bp)
 app.register_blueprint(employe_bp)
 app.register_blueprint(presence_bp)
 app.register_blueprint(apropos_bp)
+app.register_blueprint(video_bp)
+    
+app.celery = celery_app
 
 app.jinja_env.globals.update(get_photo_url=get_photo_url)
 

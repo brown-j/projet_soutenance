@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <title>Dashboard - PresenceApp</title>
 
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/switch.css') }}">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
@@ -44,6 +45,12 @@
                     Présences
                 </a>
 
+                <a href="{{ url_for('video.video_monitoring') }}"
+                    class="{% if active_page == 'video' %}active{% endif %}">
+                    <i class="fa-solid fa-video"></i>
+                    Surveillance
+                </a>
+
                 <a href="{{ url_for('apropos.apropos') }}" class="{% if active_page == 'apropos' %}active{% endif %}">
                     <i class="fa-solid fa-circle-info"></i>
                     À propos
@@ -70,6 +77,22 @@
                     <h1>Tableau de bord</h1>
                 </div>
 
+                <!-- Contrôle de la vidéosurveillance -->
+                <div class="video-control-center">
+                    <div class="status-indicator">
+                        <span class="status-dot" id="status-dot"></span>
+                        <span class="status-text" id="status-text">Caméra OFF</span>
+                    </div>
+
+                    <label class="switch">
+                        <input type="checkbox" id="camera-toggle" onclick="manageCamera()">
+                        <span class="slider round">
+                            <i class="fa-solid fa-video on-icon"></i>
+                            <i class="fa-solid fa-video-slash off-icon"></i>
+                        </span>
+                    </label>
+                </div>
+
                 <div class="header-right">
                     <button title="Paramètres">
                         <i class="fa-solid fa-gear"></i>
@@ -94,6 +117,51 @@
         </main>
 
     </div>
+
+    <script>
+        function manageCamera() {
+            const toggle = document.getElementById('camera-toggle');
+            const statusText = document.getElementById('status-text');
+            const statusDot = document.getElementById('status-dot');
+
+            // Déterminer l'action selon l'état du toggle
+            const action = toggle.checked ? "start" : "stop";
+
+            // Désactiver le toggle pendant la requête pour éviter le spam
+            toggle.disabled = true;
+
+            fetch('/video/control', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: action })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        if (action === "start") {
+                            statusText.innerText = "Caméra ON";
+                            statusText.style.color = "#2ecc71";
+                            statusDot.classList.add('active');
+                        } else {
+                            statusText.innerText = "Caméra OFF";
+                            statusText.style.color = "#a0a0a0";
+                            statusDot.classList.remove('active');
+                        }
+                    } else {
+                        // Revenir en arrière en cas d'erreur
+                        toggle.checked = !toggle.checked;
+                        alert("Erreur: " + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    toggle.checked = !toggle.checked;
+                })
+                .finally(() => {
+                    toggle.disabled = false;
+                });
+        }
+    </script>
 
 </body>
 

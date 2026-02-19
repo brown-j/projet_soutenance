@@ -1,0 +1,103 @@
+<div class="video-container-fluid">
+    <div class="monitor-header">
+        <div class="title-section">
+            <h2 class="page-title">Surveillance en temps réel</h2>
+            <p class="page-subtitle">Analyse biométrique active via Celery Worker</p>
+        </div>
+        <div class="live-indicator">
+            <span class="pulse-red"></span> LIVE
+        </div>
+    </div>
+
+    <div class="video-screen">
+        <img src="{{ url_for('video.video_feed') }}" alt="En attente du flux vidéo..." id="stream-display">
+        
+        <div class="video-overlay">
+            <div class="overlay-top">
+                <span id="current-time"></span>
+            </div>
+            <div class="overlay-bottom">
+                <small>Mode: Reconnaissance Faciale</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .video-container-fluid { animation: fadeIn 0.5s ease; }
+    
+    .monitor-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .live-indicator {
+        background: rgba(255, 0, 0, 0.1);
+        color: #ff4b4b;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .pulse-red {
+        width: 10px;
+        height: 10px;
+        background: #ff4b4b;
+        border-radius: 50%;
+        box-shadow: 0 0 0 rgba(255, 75, 75, 0.4);
+        animation: pulse-red 1.5s infinite;
+    }
+
+    .video-screen {
+        position: relative;
+        background: #000;
+        border-radius: 15px;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.1);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        min-height: 400px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #stream-display {
+        max-width: 100%;
+        max-height: 70vh;
+    }
+
+    .video-overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        pointer-events: none;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        color: white;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    }
+
+    @keyframes pulse-red {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 75, 75, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(255, 75, 75, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 75, 75, 0); }
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+<script>
+    // Mise à jour de l'heure sur l'overlay
+    function updateOverlayTime() {
+        const now = new Date();
+        const display = document.getElementById('current-time');
+        if(display) display.innerText = now.toLocaleTimeString();
+    }
+    setInterval(updateOverlayTime, 1000);
+</script>
