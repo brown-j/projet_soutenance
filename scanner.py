@@ -23,7 +23,7 @@ while True:
 
     try:
         # 3. Envoi au serveur
-        response = requests.post(SERVER_URL, files=files, timeout=2)
+        response = requests.post(SERVER_URL, files=files, timeout=10)
         
         if response.status_code == 200:
             print(f"✅ Image envoyée - Réponse: {response.text}", end="\r")
