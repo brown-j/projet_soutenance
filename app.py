@@ -6,6 +6,7 @@ from controllers.employe_controller import employe_bp
 from controllers.presence_controller import presence_bp
 from controllers.apropos_controller import apropos_bp
 from controllers.video_controller import video_bp
+from workers.tasks import process_recognition_task
 from utils.photos import get_photo_url
 from celery_worker import app as celery_app
 
@@ -35,3 +36,16 @@ app.jinja_env.globals.update(get_photo_url=get_photo_url)
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+    
+    @app.route('/detect', methods=['POST'])
+    def detect():
+         # ... code pour sauvegarder le fichier sur le disque ...
+        file_path = "temp_frames/frame_xyz.jpg"
+    
+        # On envoie la tâche à Redis et on libère Flask immédiatement
+        process_recognition_task.delay(file_path)
+    
+        return {"status": "success", "message": "Image envoyée au worker"}, 200
+
+

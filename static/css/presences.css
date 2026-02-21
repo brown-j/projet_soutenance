@@ -1,0 +1,55 @@
+/* Container principal */
+.presence-container {
+    padding: 1.5rem;
+    background-color: #ffffff;
+}
+
+/* Carte du tableau */
+.custom-card {
+    border: 1px solid #e0e6ed;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+/* En-tête du tableau */
+.table thead th {
+    background-color: #f8f9fa;
+    color: #5f6d7d;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    padding: 1rem;
+    border-bottom: 2px solid #edf2f7;
+}
+
+/* Lignes du tableau */
+.table tbody td {
+    padding: 1rem;
+    border-bottom: 1px solid #edf2f7;
+    font-size: 0.95rem;
+}
+
+/* Style des heures (timestamps) */
+.time-stamp {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block;
+}
+.arrival { color: #2d3748; background: #f7fafc; border: 1px solid #e2e8f0; }
+.departure { color: #4a5568; background: #edf2ff; border: 1px solid #dbeafe; }
+
+/* Badges de statut */
+.badge-status {
+    padding: 0.35em 0.65em;
+    font-size: 0.75em;
+    font-weight: 700;
+    border-radius: 50rem;
+}
+.bg-light-success { background-color: #dcfce7; }
+.bg-light-warning { background-color: #fef3c7; }
+
+.wait-text { color: #cbd5e0; font-style: italic; }
+.status-date { font-size: 0.9rem; color: #718096; background: #f1f5f9; padding: 5px 12px; border-radius: 6px; }
+
