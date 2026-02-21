@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from flask import Flask, request
 from controllers.login_controller import login_bp
 from controllers.dashboard_controller import dashboard_bp
 from controllers.employe_controller import employe_bp
@@ -9,6 +9,7 @@ from controllers.video_controller import video_bp
 from workers.tasks import process_recognition_task
 from utils.photos import get_photo_url
 from celery_worker import app as celery_app
+
 
 app = Flask(__name__)
 app.secret_key = "super_secret_key_2026"
@@ -49,3 +50,20 @@ if __name__ == "__main__":
         return {"status": "success", "message": "Image envoyée au worker"}, 200
 
 
+
+
+@app.route('/api/camera_push', methods=['POST'])
+def camera_push():
+    if 'image' not in request.files:
+        return {"error": "No image provided"}, 400
+    
+    file = request.files['image']
+    # Sauvegarde temporaire pour que Celery puisse la traiter
+    image_path = os.path.join("uploads", "frame_to_process.jpg")
+    file.save(image_path)
+    
+    # On délègue le travail lourd à Celery
+    from workers.tasks import process_recognition_task
+    process_recognition_task.delay(image_path)
+    
+    return {"status": "received"}, 200
