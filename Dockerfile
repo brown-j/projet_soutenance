@@ -8,14 +8,16 @@ ENV PYTHONUNBUFFERED=1
 ENV MAKEFLAGS="-j1"
 ENV CMAKE_BUILD_PARALLEL_LEVEL=1
 
-# 3. Dépendances système (Crucial pour dlib et OpenCV)
+# 3. Dépendances système (Version compatible Debian Trixie/Slim)
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
     libopenblas-dev \
     liblapack-dev \
     libx11-dev \
-    libgl1-mesa-glx \
+    libgl1 \
+    libsm6 \
+    libxext6 \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
