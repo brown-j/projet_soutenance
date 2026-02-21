@@ -3,7 +3,7 @@ import requests
 import time
 
 # REMPLACE PAR TON URL DE DÉPLOIEMENT (ex: https://ton-app.render.com)
-SERVER_URL = "https://ton-app-en-ligne.com/api/camera_push"
+SERVER_URL = "https://projet-soutenance-3cyw.onrender.com/api/camera_push"
 
 cap = cv2.VideoCapture(0)
 

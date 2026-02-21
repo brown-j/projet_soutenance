@@ -8,3 +8,4 @@ gunicorn
 celery
 redis
 opencv-python-headless
+requests
