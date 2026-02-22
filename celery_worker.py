@@ -5,11 +5,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Configuration Celery avec Redis comme Broker
-app = Celery('presence_worker',
-             broker=os.getenv('REDIS_URL', 'redis://localhost:6379/0'),
-             backend=os.getenv('REDIS_URL', 'redis://localhost:6379/0'))
 
+# Récupère l'URL Redis de Render, ou utilise localhost par défaut pour tes tests locaux
+redis_url = os.environ.get('REDIS_URL', 'redis://localhost:6379')
+
+app = Celery('tasks', 
+             broker=redis_url, 
+             backend=redis_url)
 
 app.conf.update(
     task_serializer='json',
