@@ -4,7 +4,7 @@ import time
 
 # REMPLACE PAR TON URL DE DÉPLOIEMENT (ex: https://ton-app.render.com)
 SERVER_URL = "https://projet-soutenance-1-ry7r.onrender.com/video/stream"
-SERVER_URL = "http://localhost:5000/video/stream"  # Pour tests locaux
+#SERVER_URL = "http://localhost:5000/video/stream"  # Pour tests locaux
 
 cap = cv2.VideoCapture(0)
 
