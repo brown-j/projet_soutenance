@@ -3,7 +3,8 @@ import requests
 import time
 
 # REMPLACE PAR TON URL DE DÉPLOIEMENT (ex: https://ton-app.render.com)
-SERVER_URL = "https://projet-soutenance-1-ry7r.onrender.com/api/camera_push"
+SERVER_URL = "https://projet-soutenance-1-ry7r.onrender.com/video/stream"
+SERVER_URL = "http://localhost:5000/video/stream"  # Pour tests locaux
 
 cap = cv2.VideoCapture(0)
 
@@ -14,6 +15,8 @@ while True:
     ret, frame = cap.read()
     if not ret:
         break
+    cv2.imshow('Surveillance Locale', frame)
+    if cv2.waitKey(1) & 0xFF == ord('q'): break
 
     # 1. On compresse l'image pour l'envoi (gain de rapidité)
     _, img_encoded = cv2.imencode('.jpg', frame)
