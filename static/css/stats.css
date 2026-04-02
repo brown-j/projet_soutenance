@@ -1,0 +1,339 @@
+
+/* --- Mise en page globale --- */
+:root {
+    --primary-color: #4e73df;
+    --success-color: #1cc88a;
+    --warning-color: #f6c23e;
+    --danger-color: #e74a3b;
+    --dark-color: #2d3748;
+    --gray-color: #5a5c69;
+    --light-bg: #f8f9fc;
+    --white-color: #ffffff;
+    --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.12);
+}
+
+.stats-page {
+    background: linear-gradient(135deg, #f8f9fc 0%, #e8ebf5 100%);
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+    padding: 2rem;
+    min-height: 100vh;
+    color: var(--dark-color);
+}
+
+/* --- Titre Principal --- */
+.stat-page-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--dark-color);
+    letter-spacing: -0.5px;
+}
+
+.text-muted {
+    color: #8898a6 !important;
+    font-size: 0.95rem;
+}
+
+/* --- Cartes KPI --- */
+.card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    word-wrap: break-word;
+    background-color: var(--white-color);
+    background-clip: border-box;
+    border: none;
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+.kpi-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    position: relative;
+}
+
+.kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    border-radius: 0.75rem 0.75rem 0 0;
+}
+
+.kpi-primary::before {
+    background: linear-gradient(90deg, var(--primary-color), #6c8bff);
+}
+
+.kpi-success::before {
+    background: linear-gradient(90deg, var(--success-color), #2dd9a3);
+}
+
+.kpi-warning::before {
+    background: linear-gradient(90deg, var(--warning-color), #ffdb58);
+}
+
+.kpi-danger::before {
+    background: linear-gradient(90deg, var(--danger-color), #f76c6c);
+}
+
+.kpi-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg) !important;
+}
+
+.kpi-card .card-body {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    padding: 1.5rem;
+}
+
+.kpi-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 1.8rem;
+    flex-shrink: 0;
+}
+
+.kpi-icon-primary {
+    background: rgba(78, 115, 223, 0.1);
+    color: var(--primary-color);
+}
+
+.kpi-icon-success {
+    background: rgba(28, 200, 138, 0.1);
+    color: var(--success-color);
+}
+
+.kpi-icon-warning {
+    background: rgba(246, 194, 62, 0.1);
+    color: var(--warning-color);
+}
+
+.kpi-icon-danger {
+    background: rgba(231, 74, 59, 0.1);
+    color: var(--danger-color);
+}
+
+.kpi-content {
+    flex: 1;
+}
+
+/* Optionnel : donner un peu plus d'air aux KPIs empilés */
+.kpi-card {
+    margin-bottom: 0.5rem;
+}
+
+.kpi-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #8898a6;
+    margin-bottom: 0.5rem;
+}
+
+.kpi-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--dark-color);
+    line-height: 1;
+}
+
+/* --- Cartes Générales --- */
+.shadow-sm {
+    box-shadow: var(--shadow-sm) !important;
+}
+
+.shadow {
+    box-shadow: var(--shadow-md) !important;
+}
+
+/* --- Typographie --- */
+.text-xs { font-size: 0.75rem; }
+.text-gray-800 { color: var(--gray-color) !important; }
+.text-primary { color: var(--primary-color) !important; }
+.text-success { color: var(--success-color) !important; }
+.text-warning { color: var(--warning-color) !important; }
+.text-danger { color: var(--danger-color) !important; }
+
+.font-weight-bold { font-weight: 700 !important; }
+.text-uppercase { text-transform: uppercase !important; }
+
+/* --- Graphique --- */
+.chart-card {
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    transition: all 0.3s ease;
+}
+
+.chart-card:hover {
+    box-shadow: var(--shadow-lg) !important;
+}
+
+.chart-header {
+    padding: 1.5rem;
+    background: linear-gradient(135deg, var(--light-bg) 0%, #f0f3f9 100%);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--dark-color);
+}
+
+.card-header i {
+    opacity: 0.8;
+}
+
+.chart-body {
+    padding: 2rem;
+    background: var(--white-color);
+}
+
+.card-body {
+    flex: 1 1 auto;
+    min-height: 1px;
+    padding: 1.5rem;
+}
+
+/* --- Espacements --- */
+.me-2 {
+    margin-right: 0.5rem !important;
+}
+
+.mb-0 { margin-bottom: 0 !important; }
+.mb-1 { margin-bottom: 0.25rem !important; }
+.mb-4 { margin-bottom: 1.5rem !important; }
+.mb-5 { margin-bottom: 3rem !important; }
+
+.g-3 { --bs-gutter-x: 1rem; --bs-gutter-y: 1rem; }
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+    .stat-page-title {
+        font-size: 1.8rem;
+    }
+
+    .kpi-card .card-body {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .stats-page {
+        padding: 1rem;
+    }
+}
+
+/* --- Animations --- */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.kpi-card {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.kpi-card:nth-child(1) { animation-delay: 0.1s; }
+.kpi-card:nth-child(2) { animation-delay: 0.2s; }
+.kpi-card:nth-child(3) { animation-delay: 0.3s; }
+.kpi-card:nth-child(4) { animation-delay: 0.4s; }
+
+/* --- Pie Chart --- */
+/* S'assurer que la rangée utilise toute la hauteur disponible */
+.align-items-stretch {
+    align-items: stretch !important;
+}
+
+/* Centrage vertical du contenu du diagramme */
+.pie-card .card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Centrage vertical */
+    align-items: center;     /* Centrage horizontal */
+    padding: 2rem;
+}
+
+
+.pie-card {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    transition: all 0.3s ease;
+}
+
+.pie-card:hover {
+    box-shadow: var(--shadow-lg) !important;
+}
+
+.pie-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+
+/* --- Responsive Pie Chart --- */
+@media (max-width: 1024px) {
+    .pie-card {
+        margin-top: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .pie-card {
+        margin-top: 1rem;
+    }
+    
+    .chart-body {
+        padding: 1rem;
+    }
+    
+    .kpi-card .card-body {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 0.8rem;
+    }
+    
+    .kpi-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+    }
+    
+    .kpi-value {
+        font-size: 1.5rem;
+    }
+}
+
+/* Force l'alignement horizontal sur les grands écrans */
+@media (min-width: 992px) {
+    .row.mb-4.g-3 {
+        display: flex;
+        align-items: stretch; /* Les colonnes auront la même hauteur */
+    }
+}
+
+/* On s'assure que la carte prend toute la hauteur de sa colonne */
+.h-100 {
+    height: 100% !important;
+}
+

@@ -14,6 +14,7 @@
     {% if page_css %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/' ~ page_css) }}">
     {% endif %}
+    
 
 </head>
 
@@ -51,11 +52,16 @@
                     Surveillance
                 </a>
 
+                <a href="{{ url_for('historique.historique') }}" class="{% if active_page == 'historique' %}active{% endif %}">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    Historique
+                </a>  
+                
                 <a href="{{ url_for('apropos.apropos') }}" class="{% if active_page == 'apropos' %}active{% endif %}">
                     <i class="fa-solid fa-circle-info"></i>
                     À propos
                 </a>
-
+                  
                 <div class="menu-separator"></div>
 
                 <a href="#" class="logout">

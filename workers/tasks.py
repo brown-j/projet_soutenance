@@ -91,52 +91,66 @@ def draw_label_on_image(img, left, top, right, bottom, label):
     # Texte avec le label
     font = cv2.FONT_HERSHEY_DUPLEX
     cv2.putText(img, label, (left + 6, bottom - 6), font, 0.8, (255, 255, 255), 1)
-
-
-def register_attendance(emp_ids):
-    """
-    Enregistre les présences en base de données.
-    Gère l'arrivée et le départ avec logique temporelle.
     
-    Args:
-        emp_ids: List of employee IDs to register
-    """
-    conn = get_connection()
-    if not conn:
-        print("❌ Erreur : Impossible de se connecter à la base de données.")
-        return
+    # affichage du cache a l'image
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    cv2.putText(img, f"Cache: {len(last_seen_cache)}", (10, 30), font, 0.7, (0, 255, 255), 2)
 
+def log_attendance(employe_id):
+    """
+    Enregistre un passage dans la table 'pointages'.
+    Gère l'anti-spam (1 min) et définit le type d'action (ENTREE ou PASSAGE).
+    """
+    now = datetime.now()
+    
     try:
-        cursor = conn.cursor()
-        maintenant = datetime.now()
-        date_du_jour = maintenant.date()
-        heure_actuelle = maintenant.strftime('%H:%M:%S')
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True) # dictionary=True pour faciliter la lecture
+
+        # 1. On cherche le dernier passage de cet employé AUJOURD'HUI
+        query_check = """
+            SELECT timestamp, type_action 
+            FROM pointages 
+            WHERE employe_id = %s AND DATE(timestamp) = CURDATE() 
+            ORDER BY timestamp DESC LIMIT 1
+        """
+        cursor.execute(query_check, (employe_id,))
+        last_pointage = cursor.fetchone()
+
+        action = "ENTREE" # Par défaut, si c'est le premier de la journée
         
-        for emp_id in emp_ids:
-            sql = """
-                INSERT INTO presences (employe_id, date_presence, heure_arrivee)
-                VALUES (%s, %s, %s)
-                ON DUPLICATE KEY UPDATE 
-                heure_depart = IF(TIMEDIFF(%s, heure_arrivee) > '00:05:00', %s, heure_depart)
-            """
-            
-            cursor.execute(sql, (
-                emp_id, 
-                date_du_jour, 
-                heure_actuelle,
-                heure_actuelle,
-                heure_actuelle
-            ))
-            conn.commit()
-            print(f"✅ Présence enregistrée pour l'employé {emp_id}")
-    
-    except Exception as e:
-        print(f"❌ Erreur lors de l'enregistrement de la présence: {e}")
-    
-    finally:
+        if last_pointage:
+            # Calcul de l'écart entre maintenant et le dernier passage
+            derniere_vue = last_pointage['timestamp']
+            diff = now - derniere_vue
+
+            # --- ANTI-SPAM ---
+            # Si on l'a vu il y a moins de 60 secondes, on n'enregistre rien
+            if diff.total_seconds() < 60:
+                print(f"⏳ Scan ignoré pour {employe_id} (Trop récent)")
+                return True 
+
+            # Si on l'a déjà vu aujourd'hui, le type devient "PASSAGE"
+            action = "PASSAGE"
+
+        # 2. Insertion du nouveau pointage
+        query_insert = """
+            INSERT INTO pointages (employe_id, timestamp, type_action)
+            VALUES (%s, %s, %s)
+        """
+        # On laisse MySQL gérer le timestamp ou on l'envoie manuellement
+        cursor.execute(query_insert, (employe_id, now, action))
+        
+        conn.commit()
         cursor.close()
         conn.close()
+        
+        print(f"✅ [{action}] Enregistré pour l'ID {employe_id} à {now.strftime('%H:%M:%S')}")
+        return True
 
+    except Exception as e:
+        print(f"❌ Erreur SQL pointages : {e}")
+        return False
 
 def save_processed_image_atomically(img_cv2, base_dir):
     """
@@ -157,7 +171,39 @@ def save_processed_image_atomically(img_cv2, base_dir):
         print(f"⚠️ Erreur renommage: {e}")
         cv2.imwrite(latest_path, img_cv2)
 
+# Cache global (Set pour la rapidité des opérations mathématiques d'ensemble)
+# Il contient les IDs des employés actuellement visibles à l'image précédente
+last_seen_cache = set()
 
+def log_multiple_attendances(new_detected_ids):
+    """
+    Optimisation par soustraction d'ensembles :
+    - Détecte qui vient d'arriver (new - last) -> Logique d'enregistrement
+    - Détecte qui vient de partir (last - new) -> Optionnel : Logique de sortie
+    - Met à jour le cache global
+    """
+    
+    global last_seen_cache
+    
+    # Conversion de la liste reçue en Set pour des opérations ultra-rapides
+    current_ids = set(new_detected_ids)
+    
+    # 1. ANALYSE : Qui vient d'entrer dans le champ de la caméra ?
+    to_log_in = current_ids - last_seen_cache
+
+    # ENREGISTREMENT DES ENTRÉES/MOUVEMENTS
+    if to_log_in:
+        print(f"--- Nouveaux mouvements détectés : {len(to_log_in)} ---")
+        for emp_id in to_log_in:
+            resultat = log_attendance(emp_id)
+            if resultat:
+                print(f"✅ Enregistré : id={emp_id}")
+            else:
+                print(f"❌ Échec SQL : id={emp_id}")
+
+    # 3. MISE À JOUR DU CACHE : Le nouveau cache devient les IDs actuels
+    last_seen_cache = current_ids
+    
 # ============================================================================
 # CELERY TASK - Tâche principale
 # ============================================================================
@@ -234,8 +280,7 @@ def process_recognition_task(image_path):
         save_processed_image_atomically(img_cv2, base_dir)
         
         # === ÉTAPE 8: Enregistrement en base de données ===
-        if recognized_employees:
-            register_attendance(recognized_employees)
+        log_multiple_attendances(recognized_employees)
         
         return f"Processed: {len(recognized_employees)} employee(s) recognized"
 

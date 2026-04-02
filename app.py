@@ -6,6 +6,7 @@ from controllers.employe_controller import employe_bp
 from controllers.presence_controller import presence_bp
 from controllers.apropos_controller import apropos_bp
 from controllers.video_controller import video_bp
+from controllers.history_controller import historique_bp
 from workers.tasks import process_recognition_task
 from utils.photos import get_photo_url
 from celery_worker import app as celery_app
@@ -34,6 +35,7 @@ app.register_blueprint(employe_bp)
 app.register_blueprint(presence_bp)
 app.register_blueprint(apropos_bp)
 app.register_blueprint(video_bp)
+app.register_blueprint(historique_bp)
     
 app.celery = celery_app
 

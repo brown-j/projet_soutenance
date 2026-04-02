@@ -113,65 +113,65 @@ def get_all_presences():
 
 def get_presences_by_date(date_obj):
     """
-    Récupère les présences pour une date spécifique.
+    Récupère les employés et leurs passages.
+    Logique de statut par parité :
+    - 0 passage : Absent
+    - Nombre impair : Présent (Entrée)
+    - Nombre pair : Parti (Sortie)
     """
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # Convertir la date en string si nécessaire
+    # Formatage de la date
     if not isinstance(date_obj, str):
         date_str = date_obj.isoformat()
     else:
         date_str = date_obj
 
-    # On récupère les présences pour la date spécifiée
+    # Requête SQL : On compte le nombre de passages et on les récupère tous
     query = """
-        SELECT e.nom, e.matricule, p.date_presence, p.heure_arrivee, p.heure_depart 
-        FROM presences p
-        JOIN employes e ON p.employe_id = e.id
-        WHERE p.date_presence = %s
-        ORDER BY p.heure_arrivee DESC
+        SELECT 
+            e.id, e.nom, e.prenom, e.matricule,
+            GROUP_CONCAT(TIME(p.timestamp) ORDER BY p.timestamp DESC SEPARATOR ',') as tous_passages,
+            COUNT(p.id) as nb_passages
+        FROM employes e
+        LEFT JOIN pointages p ON e.id = p.employe_id AND DATE(p.timestamp) = %s
+        GROUP BY e.id
+        ORDER BY e.nom ASC
     """
 
     cursor.execute(query, (date_str,))
+    rows = cursor.fetchall()
 
-    presences = cursor.fetchall()
+    resultats = []
+
+    for row in rows:
+        # Transformation de la chaîne GROUP_CONCAT en liste Python
+        passages_list = row['tous_passages'].split(',') if row['tous_passages'] else []
+        nb = row['nb_passages']
+        
+        # --- LOGIQUE DE STATUT SIMPLE ---
+        if nb == 0:
+            statut = "Absent"
+            heure_arrivee = None
+        elif nb % 2 != 0:
+            # Nombre impair (1, 3, 5...) -> Présent
+            statut = "Présent"
+            heure_arrivee = passages_list[-1]
+        else:
+            # Nombre pair (2, 4, 6...) -> Parti
+            statut = "Parti"
+            heure_arrivee = passages_list[-1]
+
+        resultats.append({
+            "matricule": row['matricule'],
+            "nom": row['nom'],
+            "prenom": row['prenom'],
+            "heure_arrivee": heure_arrivee,
+            "passages": passages_list,
+            "statut": statut
+        })
 
     cursor.close()
     conn.close()
-
-    return presences
-
-# services/presence_service.py
-def log_attendance(employe_id):
-    """
-    Enregistre le pointage d'un employé dans la table 'presence'.
-    """
-    now = datetime.now()
-    date_today = now.date()
-    current_time = now.time().strftime("%H:%M:%S")
-
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
-
-        # On vérifie si l'employé n'a pas déjà pointé aujourd'hui pour éviter les doublons
-        # (Anti-spam de 5 minutes par exemple ou simple check journalier)
-        
-        query = """
-            INSERT INTO presence (employe_id, date_presence, heure_arrivee)
-            VALUES (%s, %s, %s)
-            ON CONFLICT (employe_id, date_presence) DO NOTHING;
-        """
-        # Note : Utilise ? au lieu de %s si tu es sur SQLite
-        cursor.execute(query, (employe_id, date_today, current_time))
-        
-        conn.commit()
-        cursor.close()
-        conn.close()
-        print(f"✅ Pointage réussi pour l'ID {employe_id} à {current_time}")
-        return True
-
-    except Exception as e:
-        print(f"❌ Erreur SQL lors du pointage : {e}")
-        return False
+    return resultats

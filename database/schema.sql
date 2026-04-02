@@ -12,10 +12,10 @@
 
 -- Nettoyage des tables existantes
 SET FOREIGN_KEY_CHECKS = 0;
-DROP TABLE IF EXISTS presences;
 DROP TABLE IF EXISTS visages;
 DROP TABLE IF EXISTS employes;
 DROP TABLE IF EXISTS utilisateurs;
+DROP TABLE IF EXISTS pointages;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- ==============================
@@ -55,18 +55,12 @@ CREATE TABLE visages (
 );
 
 -- ==============================
--- Table des présences
+-- Table pointages
 -- ==============================
-CREATE TABLE presences (
+CREATE TABLE pointages (
     id INT AUTO_INCREMENT PRIMARY KEY,
     employe_id INT NOT NULL,
-    date_presence DATE NOT NULL,
-    heure_arrivee TIME,
-    heure_depart TIME,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_employe_presence 
-        FOREIGN KEY (employe_id) REFERENCES employes(id) ON DELETE CASCADE,
-    CONSTRAINT unique_presence 
-        UNIQUE (employe_id, date_presence)
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    type_action ENUM('ENTREE', 'SORTIE', 'PASSAGE') DEFAULT 'PASSAGE',
+    FOREIGN KEY (employe_id) REFERENCES employes(id)
 );
-
