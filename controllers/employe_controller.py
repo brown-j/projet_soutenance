@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-
 import os
+import redis
 from services.employe_service import (
     get_all_employes,
     create_employe,
@@ -12,6 +12,12 @@ from services.visage_service import upsert_visage
 
 employe_bp = Blueprint("employe", __name__)
 
+# 1. Connexion à Redis
+# Sur Render, tu utiliseras l'URL fournie par ton instance Redis (ex: redis://red-...)
+REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6373')
+r = redis.from_url(REDIS_URL)
+
+
 @employe_bp.route("/dashboard/employes/add", methods=["POST"])
 def add_employe():
     matricule = request.form["matricule"]
@@ -22,6 +28,9 @@ def add_employe():
 
     employe_id = create_employe(matricule, nom, prenom, poste)
     upsert_visage(employe_id, "face", photo)
+    
+    # Après avoir enregistré le nouvel employé et son encodage en DB :
+    r.set("refresh_cache_flag", "true")
 
     return redirect(url_for("employe.employes"))
 

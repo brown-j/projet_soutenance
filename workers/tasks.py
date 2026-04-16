@@ -12,7 +12,10 @@ import face_recognition
 from datetime import datetime
 from celery_worker import app
 from database.db import get_connection
+import base64
+import redis
 
+from socket_service import broadcast_processed_frame
 
 # ============================================================================
 # HELPERS - Fonctions utilitaires
@@ -204,51 +207,91 @@ def log_multiple_attendances(new_detected_ids):
     # 3. MISE À JOUR DU CACHE : Le nouveau cache devient les IDs actuels
     last_seen_cache = current_ids
     
+    
+# --- Variables Globales (Cache) ---
+KNOWN_ENCODINGS = None
+KNOWN_IDS = None
+
+def get_known_faces():
+    """
+    Récupère les encodages depuis la RAM si possible, 
+    sinon charge depuis la DB.
+    """
+    global KNOWN_ENCODINGS, KNOWN_IDS
+    
+    if KNOWN_ENCODINGS is None or KNOWN_IDS is None:
+        print("🔍 Cache vide : Chargement des encodages depuis la base de données...")
+        KNOWN_ENCODINGS, KNOWN_IDS = load_known_encodings_from_db()
+        print(f"✅ {len(KNOWN_IDS)} visages chargés en mémoire.")
+    
+    return KNOWN_ENCODINGS, KNOWN_IDS
+
+def refresh_known_faces():
+    """ Force le rechargement (à appeler après un ajout d'employé) """
+    global KNOWN_ENCODINGS, KNOWN_IDS
+    KNOWN_ENCODINGS = None
+    KNOWN_IDS = None
+    
 # ============================================================================
 # CELERY TASK - Tâche principale
 # ============================================================================
 
-@app.task(name="process_recognition_task")
-def process_recognition_task(image_path):
-    """
-    Tâche Celery principale : traitement de l'image et reconnaissance faciale.
-    
-    Flux:
-    1. Vérifier que l'image existe
-    2. Charger les encodages connus depuis la DB
-    3. Détecter les visages dans l'image
-    4. Comparer avec les encodages connus
-    5. Dessiner les rectangles et labels
-    6. Sauvegarder l'image traitée (latest.jpg pour synchronisation vidéo)
-    7. Enregistrer les présences en DB
-    
-    Args:
-        image_path: Chemin vers l'image à traiter
-    
-    Returns:
-        str: Message de statut du traitement
-    """
-    
-    # === ÉTAPE 1: Vérification ===
-    if not os.path.exists(image_path):
-        print(f"❌ Erreur : Le fichier {image_path} n'existe pas.")
-        return "File not found"
+# Connexion Redis
+REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6373')
+r = redis.from_url(REDIS_URL)
 
+# Chargement initial des encodages, a chaque ajoute d'employé, il faudra: 
+# actualiser le cache (recharger les encodages) pour que le worker puisse les utiliser sans redémarrage
+known_encodings, known_ids = load_known_encodings_from_db()
+
+@app.task(name="process_recognition_task")
+def process_recognition_task():
+    """
+    Tâche Celery adaptée : 
+    Lit l'image depuis Redis au lieu du disque dur.
+    """
+    print("🚀 Tâche Celery démarrée : Traitement de la frame en cours...")
+    
     try:
-        # === ÉTAPE 2: Charger les encodages connus ===
-        known_encodings, known_ids = load_known_encodings_from_db()
+        # Au début de process_recognition_task :
+        if r.get("refresh_cache_flag"):
+            refresh_known_faces()
+            r.delete("refresh_cache_flag") # On consomme le signal
+    
+        # === ÉTAPE 0 : Accès Cache (Optimisé) ===
+        known_encodings, known_ids = get_known_faces()
         
-        # === ÉTAPE 3: Lire et préparer l'image ===
-        img_cv2 = cv2.imread(image_path)
+        if not known_encodings:
+            # On libère le verrou avant de quitter
+            r.delete('is_processing')
+            return "Base de données d'encodages vide"
+        
+        # === ÉTAPE 1: Récupérer l'image depuis Redis ===
+        image_base64 = r.get('live_frame')
+        if not image_base64:
+            return "No frame in Redis"
+
+        # === ÉTAPE 2: Décoder l'image Base64 en format OpenCV ===
+        img_data = base64.b64decode(image_base64)
+        nparr = np.frombuffer(img_data, np.uint8)
+        img_cv2 = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
         if img_cv2 is None:
-            print(f"❌ Erreur : Impossible de lire l'image {image_path}")
-            return "Image reading failed"
+            return "Image decoding failed"
         
-        rgb_img = cv2.cvtColor(img_cv2, cv2.COLOR_BGR2RGB)
-        
-        # === ÉTAPE 4: Détecter les visages ===
+        # 1. Amélioration instantanée du contraste (CLAHE)
+        lab = cv2.cvtColor(img_cv2, cv2.COLOR_BGR2LAB)
+        l, a, b = cv2.split(lab)
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+        cl = clahe.apply(l)
+        limg = cv2.merge((cl,a,b));enhanced_img = cv2.cvtColor(limg, cv2.COLOR_LAB2BGR)
+
+        # 2. Conversion finale pour l'IA
+        rgb_img = cv2.cvtColor(enhanced_img, cv2.COLOR_BGR2RGB)
+
+        # === ÉTAPE 3: Détection ===#
         face_locations = face_recognition.face_locations(rgb_img)
-        face_encodings = face_recognition.face_encodings(rgb_img, face_locations)
+        face_encodings = face_recognition.face_encodings(img_cv2, face_locations)
         
         recognized_employees = []
         
@@ -271,23 +314,33 @@ def process_recognition_task(image_path):
                     label = f"Employe ID: {emp_id}"
                     recognized_employees.append(emp_id)
                     print(f"✅ Match found: Employee ID {emp_id}")
-            
+                    
             # === ÉTAPE 6: Dessiner sur l'image ===
             draw_label_on_image(img_cv2, left, top, right, bottom, label)
+            
+        # === ÉTAPE 7: Sauvegarder la frame TRAITÉE dans Redis ===
+        # Au lieu d'un fichier 'latest.jpg', on remet l'image dessinée dans Redis 
+        # pour que le dashboard affiche les carrés verts en temps réel.
+        _, buffer = cv2.imencode('.jpg', img_cv2)
+        processed_base64 = base64.b64encode(buffer).decode('utf-8')
+        r.set('processed_frame', processed_base64)
         
-        # === ÉTAPE 7: Sauvegarde atomique (synchronisation vidéo) ===
-        base_dir = os.path.dirname(os.path.abspath(image_path))
-        save_processed_image_atomically(img_cv2, base_dir)
+        # Publier l'image traitée sur le canal Redis pub/sub
+        # Le serveur Flask écoute ce canal et émet via SocketIO au frontend
+        r.set('processed_frames', processed_base64)
+        print("✅ Frame traitée sauvegardée dans Redis")
         
-        # === ÉTAPE 8: Enregistrement en base de données ===
-        log_multiple_attendances(recognized_employees)
-        
-        return f"Processed: {len(recognized_employees)} employee(s) recognized"
+        # === ÉTAPE 8: Enregistrement en DB ===
+        if recognized_employees:
+            log_multiple_attendances(recognized_employees)
+            return f"Match(es) found: {recognized_employees}"
+            
+        return "No match found"
 
-    except Exception as e:
-        print(f"❌ Erreur lors de la tâche Celery : {e}")
-        return f"Error: {str(e)}"
+    except Exception as e: 
+        print(f"❌ Erreur Celery : {e}")
+        return str(e)
     
     finally:
-        # Nettoyage : processing.jpg se réécrit automatiquement, pas besoin de le supprimer
-        pass
+        # Libérer le verrou de traitement à la fin de la tâche, même en cas d'erreur
+        r.delete('is_processing')

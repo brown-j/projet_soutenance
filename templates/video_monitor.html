@@ -10,7 +10,7 @@
     </div>
 
     <div class="video-screen">
-        <img src="{{ url_for('video.video_feed') }}" alt="En attente du flux vidéo..." id="stream-display">
+        <img src="" alt="En attente du flux vidéo..." id="stream-display">
         
         <div class="video-overlay">
             <div class="overlay-top">
@@ -90,9 +90,29 @@
     }
 
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
 </style>
 
+
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script>
+    const socket = io(); // Connexion au serveur
+    const streamDisplay = document.getElementById('stream-display');
+
+    // Écouter l'événement 'processed_feed' du serveur
+    // Chaque fois qu'une frame traitée est disponible, elle est affichée
+    socket.on('processed_feed', function(base64Image) {
+        if (streamDisplay) {
+            streamDisplay.src = "data:image/jpeg;base64," + base64Image;
+            console.log("✅ Frame traitée reçue et affichée");
+        }
+    });
+
+    // Afficher un message lors de la connexion
+    socket.on('connect', function() {
+        console.log("🟢 Connecté au serveur WebSocket");
+    });
+
     // Mise à jour de l'heure sur l'overlay
     function updateOverlayTime() {
         const now = new Date();

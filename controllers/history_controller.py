@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, render_template
-from services.historique_service import get_employee_history
+from services.historique_service import get_one_employee_history
 from flask import jsonify, request
 
 historique_bp = Blueprint("historique", __name__)
@@ -11,7 +11,7 @@ def employee_history_api(matricule):
     end_date = request.args.get('end')
     
     # On passe les 3 arguments au service
-    data = get_employee_history(matricule, start_date, end_date)
+    data = get_one_employee_history(matricule, start_date, end_date)
     
     if not data:
         return jsonify({"error": "Historique introuvable pour cette période"}), 404

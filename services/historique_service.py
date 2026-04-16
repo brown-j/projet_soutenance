@@ -1,7 +1,23 @@
 from datetime import datetime
 from database.db import get_connection
 
-def get_employee_history(matricule, start_date, end_date):
+def get_one_employee_history(matricule, start_date, end_date):
+    # 1. On récupère TOUTE l'histoire via la fonction globale
+    all_data = get_all_employees_history(start_date, end_date)
+    
+    if not all_data:
+        return None
+
+    # 2. On filtre pour ne garder que l'employé souhaité
+    employee_records = all_data.get(matricule)
+
+    if not employee_records:
+        return None
+    
+    return employee_records
+    
+
+def get_all_employees_history(start_date, end_date):
     db = None
     if not start_date or not end_date:
         return None
@@ -10,7 +26,6 @@ def get_employee_history(matricule, start_date, end_date):
         db = get_connection()
         cursor = db.cursor(dictionary=True)
         
-        # On force CAST(%s AS DATE) pour que MySQL renvoie des objets date
         query = """
             WITH RECURSIVE calendrier AS (
                 SELECT CAST(%s AS DATE) AS date_jour
@@ -21,63 +36,79 @@ def get_employee_history(matricule, start_date, end_date):
             )
             SELECT 
                 cal.date_jour,
-                e.nom, e.prenom,
+                e.matricule,
+                e.nom, 
+                e.prenom,
                 MIN(p.timestamp) as h_arrivee,
                 MAX(p.timestamp) as h_sortie,
                 IFNULL(TIMESTAMPDIFF(MINUTE, MIN(p.timestamp), MAX(p.timestamp)) / 60, 0) as duree_h
             FROM calendrier cal
-            CROSS JOIN (SELECT nom, prenom, id FROM employes WHERE matricule = %s) e
+            CROSS JOIN employes e
             LEFT JOIN pointages p ON cal.date_jour = DATE(p.timestamp) AND p.employe_id = e.id
-            GROUP BY cal.date_jour, e.nom, e.prenom
-            ORDER BY cal.date_jour ASC;
+            GROUP BY cal.date_jour, e.id, e.nom, e.prenom, e.matricule
+            ORDER BY cal.date_jour ASC, e.nom ASC;
         """
         
-        cursor.execute(query, (start_date, end_date, matricule))
+        cursor.execute(query, (start_date, end_date))
         history = cursor.fetchall()
         
-        if not history: return None
+        if not history:
+            return {}
 
-        dates, heures_arrivee, heures_sortie, raw_data, durees = [], [], [], [], []
+        # Initialisation de la Map (Dictionnaire)
+        history_map = {}
 
         for row in history:
-            # --- 1. GESTION DE LA DATE DU CALENDRIER ---
-            # Si MySQL renvoie une string, on la convertit en objet date
+            mat = row['matricule']
+            
+            # Si c'est la première fois qu'on voit ce matricule, on initialise sa structure
+            if mat not in history_map:
+                history_map[mat] = {
+                    "nom_complet": f"{row['nom']} {row['prenom']}",
+                    "matricule": mat,
+                    "dates": [],           # Pour l'axe X du graphique (02/04)
+                    "heures_arrivee": [],  # Pour les points du graphique (decimal)
+                    "heures_sortie": [],   # Pour les points du graphique (decimal)
+                    "durees": [],          # Liste des durées (float)
+                    "raw_data": []         # Pour remplir le tableau HTML
+                }
+
+            # --- 1. GESTION DE LA DATE ---
             d_jour = row['date_jour']
             if isinstance(d_jour, str):
                 d_jour = datetime.strptime(d_jour, "%Y-%m-%d")
 
-            # --- 2. GESTION DES POINTAGES (Arrivée/Sortie) ---
+            # --- 2. GESTION DES POINTAGES (Datetimes) ---
             dt_arr = row['h_arrivee']
             dt_sor = row['h_sortie']
             
-            # Calcul décimal pour le graphique (sécurisé)
-            dec_arr = dt_arr.hour + (dt_arr.minute / 60) if dt_arr else None
-            dec_sor = dt_sor.hour + (dt_sor.minute / 60) if dt_sor else None
+            # Conversion décimale pour Chart.js (ex: 08h30 -> 8.5)
+            dec_arr = round(dt_arr.hour + (dt_arr.minute / 60), 2) if dt_arr else None
+            dec_sor = round(dt_sor.hour + (dt_sor.minute / 60), 2) if dt_sor else None
             
-            # Remplissage des listes pour le graphique
-            dates.append(d_jour.strftime("%d/%m"))
-            heures_arrivee.append(round(dec_arr, 2) if dec_arr is not None else None)
-            heures_sortie.append(round(dec_sor, 2) if dec_sor is not None else None)
+            # --- 3. REMPLISSAGE DE LA MAP POUR CET EMPLOYÉ ---
+            emp_data = history_map[mat]
             
-            # --- 3. GESTION DU TABLEAU (raw_data) ---
-            raw_data.append({
+            # Données Graphiques
+            emp_data["dates"].append(d_jour.strftime("%d/%m"))
+            emp_data["heures_arrivee"].append(dec_arr)
+            emp_data["heures_sortie"].append(dec_sor)
+            emp_data["durees"].append(round(float(row['duree_h']), 2))
+            
+            # Données Tableau (formatées en texte)
+            emp_data["raw_data"].append({
                 "date_jour": d_jour.strftime("%Y-%m-%d"),
                 "heure_arrivee": dt_arr.strftime("%H:%M") if dt_arr else "--:--",
                 "heure_sortie": dt_sor.strftime("%H:%M") if dt_sor else "--:--",
-                "duree_h": round(float(row['duree_h']), 2)
+                "duree_h": round(float(row['duree_h']), 2),
+                "statut": "Présent" if dt_arr else "Absent"
             })
-            durees.append(round(float(row['duree_h']), 2))
 
-        return {
-            "nom_complet": f"{history[0]['nom']} {history[0]['prenom']}",
-            "dates": dates,
-            "heures_arrivee": heures_arrivee,
-            "heures_sortie": heures_sortie,
-            "raw_data": raw_data,
-            "durees": durees
-        }
+        return history_map
+
     except Exception as e:
-        print(f"Erreur service historique: {e}")
+        print(f"Erreur service historique global: {e}")
         return None
     finally:
-        if db: db.close()
+        if db:
+            db.close()

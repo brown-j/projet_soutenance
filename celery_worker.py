@@ -1,27 +1,22 @@
-# celery_worker.py
 from celery import Celery
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
-
-# Récupère l'URL Redis de Render, ou utilise localhost par défaut pour tes tests locaux
-redis_url = os.environ.get('REDIS_URL', 'redis://localhost:6379')
+# Utilise 6373 pour correspondre à ton terminal local
+redis_url = os.environ.get('REDIS_URL', 'redis://localhost:6373')
 
 app = Celery('tasks', 
              broker=redis_url, 
-             backend=redis_url)
+             backend=redis_url,
+             include=['workers.tasks']) # On inclut les tâches ici directement
 
 app.conf.update(
     task_serializer='json',
     accept_content=['json'],
     result_serializer='json',
-    timezone='Europe/Paris',
+    timezone='Africa/Douala', # Adapté à ton fuseau horaire (Cameroun)
     enable_utc=True,
     task_track_started=True,
 )
-
-# Importer les tasks APRÈS l'initialisation de app (éviter circular import)
-import workers.tasks
-
