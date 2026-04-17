@@ -1,4 +1,3 @@
-# --- ÉTAPE 1 : TOUJOURS EN PREMIER (LIGNE 1 & 2) ---
 import eventlet
 eventlet.monkey_patch()
 
@@ -41,5 +40,6 @@ app.jinja_env.globals.update(get_photo_url=get_photo_url)
 
 if __name__ == "__main__":
     # --- ÉTAPE 3 : UTILISER socketio.run AU LIEU DE app.run ---
+    port = int(os.environ.get("PORT", 5000))
     print("🚀 Serveur de soutenance démarré sur http://localhost:5000")
     socketio.run(app, debug=True, host='0.0.0.0', port=5000)
