@@ -9,3 +9,4 @@ celery
 redis
 opencv-python-headless
 requests
+eventlet==0.35.2
