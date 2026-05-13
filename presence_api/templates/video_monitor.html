@@ -100,10 +100,14 @@
     const streamDisplay = document.getElementById('stream-display');
 
     // Écouter l'événement 'processed_feed' du serveur
-    // Chaque fois qu'une frame traitée est disponible, elle est affichée
     socket.on('processed_feed', function(base64Image) {
         if (streamDisplay) {
-            streamDisplay.src = "data:image/jpeg;base64," + base64Image;
+            // CORRECTION ICI : On vérifie si le préfixe est déjà présent
+            if (base64Image.startsWith("data:image")) {
+                streamDisplay.src = base64Image;
+            } else {
+                streamDisplay.src = "data:image/jpeg;base64," + base64Image;
+            }
             console.log("✅ Frame traitée reçue et affichée");
         }
     });

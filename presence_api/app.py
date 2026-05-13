@@ -10,6 +10,7 @@ from controllers.presence_controller import presence_bp
 from controllers.apropos_controller import apropos_bp
 from controllers.video_controller import video_bp
 from controllers.history_controller import historique_bp
+from controllers.visages_controller import visages_bp
 from utils.photos import get_photo_url
 from celery_worker import app as celery_app
 from socket_service import socketio
@@ -34,7 +35,8 @@ app.register_blueprint(presence_bp)
 app.register_blueprint(apropos_bp)
 app.register_blueprint(video_bp)
 app.register_blueprint(historique_bp)
-    
+app.register_blueprint(visages_bp)
+
 app.celery = celery_app
 app.jinja_env.globals.update(get_photo_url=get_photo_url)
 
