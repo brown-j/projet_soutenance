@@ -43,6 +43,7 @@
                         <th>Nom</th>
                         <th>Prénom</th>
                         <th>Poste</th>
+                        <th>email</th>
                         <th>Date création</th>
                         <th>Actions</th>
                     </tr>
@@ -72,6 +73,7 @@
                         <td>{{ employe.nom }}</td>
                         <td>{{ employe.prenom }}</td>
                         <td>{{ employe.poste }}</td>
+                        <td>{{ employe.email }}</td>
                         <td>{{ employe.created_at }}</td>
 
                         <td>
@@ -82,6 +84,7 @@
                             '{{ employe.nom }}',
                             '{{ employe.prenom }}',
                             '{{ employe.poste }}',
+                            '{{ employe.email }}',
                             '{{ employe.photos.face}}'
                             )">
                                     <i class="fa-solid fa-pen"></i>
@@ -126,6 +129,10 @@
                         <label for="poste">Poste</label>
                     </div>
 
+                    <div class="form-group">
+                        <input type="email" name="email" id="email" placeholder="Email">
+                        <label for="email">Email</label>
+                    </div>
                     <div class="photo-container"></div>
 
                     <div class="button-group">
@@ -186,7 +193,7 @@
                 document.getElementById("popupForm").style.display = "flex";
             }
 
-            function openEdit(id, matricule, nom, prenom, poste, photo_name) {
+            function openEdit(id, matricule, nom, prenom, poste,email, photo_name) {
                 document.getElementById("popupTitle").innerText = "Modifier l’employé";
                 document.getElementById("employeForm").action = "/dashboard/employes/edit/" + id;
 
@@ -195,6 +202,7 @@
                 document.getElementById("nom").value = nom;
                 document.getElementById("prenom").value = prenom;
                 document.getElementById("poste").value = poste;
+                document.getElementById("email").value = email;
 
                 const url = (photo_name && photo_name !== 'None') ? UPLOAD_FOLDER + photo_name : null;
                 const photoContainer = document.querySelector('.photo-container');

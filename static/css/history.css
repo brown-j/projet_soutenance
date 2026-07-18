@@ -153,3 +153,79 @@
 .custom-date-input:focus {
     border-color: var(--primary);
 }
+
+/* Conteneur principal */
+.dropdown-export {
+    position: relative;
+    display: inline-block;
+}
+
+/* Bouton principal de déclenchement */
+#btnExportToggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+/* Effet de survol sur le bouton */
+#btnExportToggle:hover {
+    background-color: #2563eb;
+}
+
+/* Fenêtre du menu déroulant */
+.dropdown-menu {
+    display: none; /* Géré dynamiquement par le JavaScript */
+    position: absolute;
+    right: 0;
+    top: 110%;
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    width: 160px;
+    z-index: 50;
+    overflow: hidden;
+}
+
+/* Liens à l'intérieur du menu */
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    color: #334155;
+    text-decoration: none;
+    font-size: 14px;
+    transition: background-color 0.15s ease;
+}
+
+/* Effet au survol des options du menu */
+.dropdown-item:hover {
+    background-color: #f8fafc;
+}
+
+/* Ligne de séparation entre le premier et le deuxième élément */
+.dropdown-item + .dropdown-item {
+    border-top: 1px solid #f1f5f9;
+}
+
+/* Gestion des icônes/emojis */
+.icon-emoji {
+    font-weight: bold;
+}
+
+.pdf-color {
+    color: #ef4444;
+}
+
+.csv-color {
+    color: #10b981;
+}

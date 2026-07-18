@@ -1,0 +1,103 @@
+<link rel="stylesheet" href="{{ url_for('static', filename='css/notification.css') }}">
+
+<div class="notification-page-container">
+
+    <div class="card notif-wrapper" id="section-notifications">
+        <div class="card-header">
+            <h2><i class="fas fa-envelope-open-text notif-title-icon"></i> Automatisation des Notifications</h2>
+            <p class="notif-subtitle">Configurez la récurrence à laquelle le système transmettra les fiches récapitulatives de présences aux adresses e-mail des employés.</p>
+        </div>
+        
+        <form id="notification-form" data-url="{{ url_for('notification.save_config') }}" data-load-url="{{ url_for('notification.get_config') }}">
+            
+            <div class="form-section">
+                <h5 class="notif-section-title"><i class="fas fa-calendar-alt"></i> Période du rapport à extraire</h5>
+                <div class="notif-form-row">
+                    <div class="notif-form-group">
+                        <label for="date_debut" class="notif-label">Date de début :</label>
+                        <input type="date" id="date_debut" name="date_debut" class="form-control notif-input" required>
+                    </div>
+                    <div class="notif-form-group">
+                        <label for="date_fin" class="notif-label">Date de fin :</label>
+                        <input type="date" id="date_fin" name="date_fin" class="form-control notif-input" required>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="notif-divider">
+
+            <div class="form-section">
+                <h5 class="notif-section-title"><i class="fas fa-clock"></i> Planification de la tâche d'envoi</h5>
+                <div class="notif-form-row">
+                    <div class="notif-form-group">
+                        <label for="day_of_week" class="notif-label">Fréquence de distribution :</label>
+                        <select id="day_of_week" name="day_of_week" class="form-control notif-input">
+                            <option value="*">Chaque jour</option>
+                            <option value="1-5">Du Lundi au Vendredi</option>
+                            <option value="4">Tous les Vendredis (Rapport hebdomadaire)</option>
+                        </select>
+                    </div>
+                    <div class="notif-form-group">
+                        <label for="send_time" class="notif-label">Heure précise du déclenchement :</label>
+                        <input type="time" id="send_time" name="send_time" value="18:00" class="form-control notif-input" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="notif-action-bar">
+                <button type="submit" class="btn-primary btn-notif-submit">
+                    <i class="fas fa-save"></i> 
+                    <span class="btn-text">Enregistrer et Déployer la règle</span>
+                    <span class="spinner" style="display: none;">⏳</span>
+                </button>
+            </div>
+        </form>
+        <div id="notif-message" class="feedback-msg"></div>
+    </div>
+
+    <div class="card notification-dashboard" style="margin-top: 24px;">
+        <div class="card-header">
+            <h2><i class="fas fa-history notif-title-icon"></i> Historique & Renvoi Manuel</h2>
+            <p class="notif-subtitle">Consultez l'historique des envois récents et filtrez par matricule pour relancer des notifications spécifiques en cas d'échec.</p>
+        </div>
+        
+        <div class="search-bar-container">
+            <label for="search-matricules" class="notif-label">Filtrer par matricule(s) (séparez par un point-virgule <code>;</code>)</label>
+            <div class="search-input-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="search-matricules" placeholder="Ex: M001; M004; M012" autocomplete="off" class="form-control notif-input" style="padding-left: 35px;">
+                <span class="search-count" id="search-count">0 lignes</span>
+            </div>
+        </div>
+
+        <div class="virtual-table-container">
+            <div class="v-table-header">
+                <div class="v-col col-check">
+                    <input type="checkbox" id="select-all-visible" title="Sélectionner tous les résultats filtrés">
+                </div>
+                <div class="v-col col-date">Date & Heure</div>
+                <div class="v-col col-matricule">Matricule</div>
+                <div class="v-col col-employe">Employé / Email</div>
+                <div class="v-col col-statut">Statut</div>
+                <div class="v-col col-details">Détails</div>
+            </div>
+
+            <div class="v-table-scroll-container" id="scroll-container">
+                <div class="v-table-spacer" id="table-spacer"></div>
+                <div class="v-table-content" id="table-content"></div>
+            </div>
+        </div>
+
+        <div class="action-footer">
+            <div class="selection-status" id="selection-status">0 employé(s) sélectionné(s)</div>
+            <button id="btn-resend" class="btn-primary" disabled>
+                <i class="fas fa-paper-plane"></i>
+                <span class="btn-text">Renvoyer aux sélectionnés</span>
+                <span class="spinner" style="display: none;">⏳</span>
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/notification.js') }}"></script>

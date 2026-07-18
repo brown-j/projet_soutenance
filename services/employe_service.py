@@ -5,16 +5,16 @@ from werkzeug.utils import secure_filename
 from services.storage_service import delete_file
 
 
-def create_employe(matricule, nom, prenom, poste):
+def create_employe(matricule, nom, prenom, poste, email):
     conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute(
         """
-        INSERT INTO employes (matricule, nom, prenom, poste)
-        VALUES (%s, %s, %s, %s)
+        INSERT INTO employes (matricule, nom, prenom, poste, email)
+        VALUES (%s, %s, %s, %s, %s)
         """,
-        (matricule, nom, prenom, poste)
+        (matricule, nom, prenom, poste, email)
     )
 
     conn.commit()
@@ -23,7 +23,7 @@ def create_employe(matricule, nom, prenom, poste):
 
     return cursor.lastrowid  # Retourne l'ID de l'employé créé
 
-def update_employe(id_emp, matricule, nom, prenom, poste):
+def update_employe(id_emp, matricule, nom, prenom, poste, email):
     try:
         # Connexion à ta base (remplace 'database.db' par ton fichier)
         conn = get_connection()
@@ -32,10 +32,10 @@ def update_employe(id_emp, matricule, nom, prenom, poste):
         # Requête SQL sécurisée (on utilise des ? pour éviter les injections SQL)
         sql = """
             UPDATE employes 
-            SET matricule = %s, nom = %s, prenom = %s, poste = %s 
+            SET matricule = %s, nom = %s, prenom = %s, poste = %s, email = %s
             WHERE id = %s
         """
-        params = (matricule, nom, prenom, poste, id_emp)
+        params = (matricule, nom, prenom, poste, email, id_emp)
         
         cursor.execute(sql, params)
         conn.commit()
@@ -59,7 +59,7 @@ def get_employe_by_id(employe_id):
 
     query = """
         SELECT 
-            e.id, e.matricule, e.nom, e.prenom, e.poste, e.created_at,
+            e.id, e.matricule, e.nom, e.prenom, e.poste,e.email, e.created_at,
             JSON_ARRAYAGG(
                 JSON_OBJECT(
                     'id', v.id, 'type_vue', v.type_vue, 'chemin_image', v.chemin_image, 'created_at', v.created_at
@@ -68,7 +68,7 @@ def get_employe_by_id(employe_id):
         FROM employes e
         LEFT JOIN visages v ON e.id = v.employe_id
         WHERE e.id = %s
-        GROUP BY e.id, e.matricule, e.nom, e.prenom, e.poste, e.created_at
+        GROUP BY e.id, e.matricule, e.nom, e.prenom, e.poste, e.email, e.created_at
     """
     
     try:
@@ -122,7 +122,7 @@ def get_all_employes():
 
     query = """
         SELECT 
-            e.id, e.matricule, e.nom, e.prenom, e.poste, e.created_at,
+            e.id, e.matricule, e.nom, e.prenom, e.poste, e.email, e.created_at,
             JSON_ARRAYAGG(
                 JSON_OBJECT(
                     'type_vue', v.type_vue, 

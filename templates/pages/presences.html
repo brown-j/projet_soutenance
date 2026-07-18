@@ -56,4 +56,15 @@
     document.getElementById('dateInput').addEventListener('change', function(e) {
         window.location.href = `/dashboard/presences?date=${this.value}`;
     });
+
+    // Côté navigateur (dans ton fichier JS du dashboard)
+const socket = io('http://127.0.0.1:5000'); // Ou l'URL de ton API
+
+// On écoute le signal de succès venant du serveur
+socket.on('scan_success', function(data) {
+    console.log("Présence validée pour :", data.employe);
+    
+    // Logique pour mettre à jour la ligne du tableau
+    // ex: trouver la ligne avec le matricule data.employe et changer "Absent" en "Présent"
+});
 </script>

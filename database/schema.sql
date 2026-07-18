@@ -16,6 +16,7 @@ DROP TABLE IF EXISTS visages;
 DROP TABLE IF EXISTS employes;
 DROP TABLE IF EXISTS utilisateurs;
 DROP TABLE IF EXISTS pointages;
+DROP TABLE IF EXISTS notification_config;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- ==============================
@@ -37,6 +38,7 @@ CREATE TABLE employes (
     matricule VARCHAR(50) UNIQUE,
     nom VARCHAR(100) NOT NULL,
     prenom VARCHAR(100) NOT NULL,
+    email VARCHAR(150) UNIQUE, -- NOUVEAU : Champ pour stocker l'adresse mail
     poste VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -63,4 +65,30 @@ CREATE TABLE pointages (
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     type_action ENUM('ENTREE', 'SORTIE', 'PASSAGE') DEFAULT 'PASSAGE',
     FOREIGN KEY (employe_id) REFERENCES employes(id)
+);
+
+-- ==============================
+-- Table de configuration des notifications automatiques
+-- ==============================
+
+CREATE TABLE notification_config (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    type_notification VARCHAR(50) DEFAULT 'Rapport de Présence',
+    cron_minute VARCHAR(10) DEFAULT '0',
+    cron_hour VARCHAR(10) DEFAULT '18',
+    cron_day_of_week VARCHAR(20) DEFAULT '*', 
+    date_debut DATE NOT NULL,
+    date_fin DATE NOT NULL,
+    is_active TINYINT(1) DEFAULT 1
+);
+
+
+CREATE TABLE historique_notifications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    employe_id INT,
+    email VARCHAR(255),
+    statut ENUM('Succès', 'Échec') NOT NULL,
+    message_erreur TEXT,
+    date_envoi TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (employe_id) REFERENCES employes(id) ON DELETE CASCADE
 );

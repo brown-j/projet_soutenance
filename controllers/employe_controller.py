@@ -24,9 +24,10 @@ def add_employe():
     nom = request.form["nom"]
     prenom = request.form["prenom"]
     poste = request.form.get("poste")
+    email = request.form.get("email")
     photo = request.files.get("photo_face")
 
-    employe_id = create_employe(matricule, nom, prenom, poste)
+    employe_id = create_employe(matricule, nom, prenom, poste, email)
     upsert_visage(employe_id, "face", photo)
     
     # Après avoir enregistré le nouvel employé et son encodage en DB :
@@ -60,9 +61,10 @@ def edit_employe(id):
     nom = request.form["nom"]
     prenom = request.form["prenom"]
     poste = request.form.get("poste")
+    email = request.form.get("email")  
     photo = request.files.get("photo_face")
 
-    result = update_employe(id, matricule, nom, prenom, poste)
+    result = update_employe(id, matricule, nom, prenom, poste, email)
 
     if result["status"] == "success":
         upsert_visage(id, "face", photo)

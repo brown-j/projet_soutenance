@@ -1,0 +1,324 @@
+/* =========================================================
+   VARIABLES & TYPOGRAPHIE GLOBALE
+   ========================================================= */
+.notification-page-container {
+    padding: 20px;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: #334155;
+}
+
+/* =========================================================
+   CARTES (CONTENEURS PRINCIPAUX)
+   ========================================================= */
+.card {
+    background: #ffffff;
+    border-radius: 12px;
+    /* Ombre douce et moderne */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    border: 1px solid #e2e8f0;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.card-header h2 {
+    margin: 0 0 8px 0;
+    font-size: 1.25rem;
+    color: #1e293b;
+}
+
+.notif-title-icon {
+    color: #4e73df;
+    margin-right: 8px;
+}
+
+.notif-subtitle {
+    color: #64748b;
+    font-size: 0.95rem;
+    margin-bottom: 24px;
+    line-height: 1.5;
+}
+
+.notif-section-title {
+    margin-bottom: 16px;
+    color: #334155;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.notif-divider {
+    border: 0;
+    border-top: 1px solid #e2e8f0;
+    margin: 24px 0;
+}
+
+/* =========================================================
+   FORMULAIRES & INPUTS
+   ========================================================= */
+.notif-form-row {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 20px;
+}
+
+.notif-form-group {
+    flex: 1;
+}
+
+.notif-label {
+    display: block;
+    font-weight: 500;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+    color: #475569;
+}
+
+/* Style commun pour tous les champs de saisie (Config + Recherche) */
+.form-control {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    outline: none;
+    background-color: #fff;
+    font-family: inherit;
+    font-size: 0.95rem;
+    color: #334155;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+}
+
+/* Effet pro au clic */
+.form-control:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.15);
+}
+
+/* =========================================================
+   BARRE DE RECHERCHE SPÉCIFIQUE
+   ========================================================= */
+.search-bar-container {
+    margin-bottom: 20px;
+}
+
+.search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-icon {
+    position: absolute;
+    left: 14px;
+    color: #94a3b8;
+}
+
+#search-matricules {
+    padding-left: 38px;
+    padding-right: 90px; /* Espace pour le compteur */
+}
+
+.search-count {
+    position: absolute;
+    right: 10px;
+    font-size: 0.75rem;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+/* =========================================================
+   BOUTONS & ACTIONS
+   ========================================================= */
+.notif-action-bar {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 24px;
+}
+
+.btn-primary {
+    background-color: #4e73df;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background-color: #2e59d9;
+}
+
+.btn-primary:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+.btn-primary:disabled {
+    background-color: #cbd5e1;
+    cursor: not-allowed;
+    color: #94a3b8;
+}
+
+/* Messages de retour (Succès/Erreur) */
+.feedback-msg {
+    margin-top: 16px;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+/* =========================================================
+   TABLEAU VIRTUEL (VIRTUAL SCROLLER)
+   ========================================================= */
+.virtual-table-container {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.v-table-header {
+    display: flex;
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    font-weight: 600;
+    color: #475569;
+    padding: 12px 10px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Conteneur de défilement virtuel */
+.v-table-scroll-container {
+    position: relative;
+    height: 450px; /* 10 lignes x 45px */
+    overflow-y: auto;
+}
+
+/* Personnalisation de la barre de scroll */
+.v-table-scroll-container::-webkit-scrollbar {
+    width: 8px;
+}
+.v-table-scroll-container::-webkit-scrollbar-track {
+    background: #f8fafc;
+}
+.v-table-scroll-container::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+.v-table-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+.v-table-spacer {
+    position: absolute;
+    width: 1px;
+    left: 0;
+    top: 0;
+}
+
+.v-table-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+}
+
+.v-table-row {
+    display: flex;
+    align-items: center;
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 45px; 
+    border-bottom: 1px solid #f1f5f9;
+    box-sizing: border-box;
+    padding: 0 10px;
+    background: #fff;
+    transition: background-color 0.15s ease;
+}
+
+.v-table-row:hover {
+    background-color: #f8fafc;
+}
+
+/* Gestion des colonnes du tableau */
+.v-col {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0 8px;
+    font-size: 0.9rem;
+}
+
+.col-check { flex: 0 0 50px; text-align: center; }
+.col-date { flex: 0 0 160px; font-size: 0.85rem; color: #64748b; }
+.col-matricule { flex: 0 0 120px; font-weight: 600; color: #334155; }
+.col-employe { flex: 2; }
+.col-statut { flex: 0 0 100px; }
+.col-details { flex: 1.5; color: #ef4444; font-size: 0.85rem; }
+
+/* =========================================================
+   BADGES & FOOTER D'ACTION
+   ========================================================= */
+.badge {
+    padding: 4px 10px;
+    border-radius: 9999px; /* Bords totalement arrondis */
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.badge.success {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.badge.error {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
+
+.action-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.selection-status {
+    font-size: 0.95rem;
+    color: #475569;
+    font-weight: 500;
+}
+
+/* =========================================================
+   RESPONSIVE DESIGN (Pour petits écrans)
+   ========================================================= */
+@media (max-width: 768px) {
+    .notif-form-row {
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .action-footer {
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+    }
+    
+    .btn-primary {
+        width: 100%;
+        justify-content: center;
+    }
+}

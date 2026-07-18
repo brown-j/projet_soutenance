@@ -186,7 +186,7 @@ span[onclick] {
     margin-bottom: 25px;
 }
 
-.form-group input[type="text"] {
+.form-group input {
     width: 90%;
     padding: 10px;
     border: 2px solid #e0e0e0;
@@ -195,17 +195,17 @@ span[onclick] {
     transition: all 0.3s;
 }
 
-.form-group input[type="text"]::placeholder {
+.form-group input::placeholder {
     color: #999;
     font-size: 14px;
 }
 
-.form-group input[type="text"]:focus {
+.form-group input:focus {
     outline: none;
     border-color: #667eea;
 }
 
-.form-group input[type="text"]:focus::placeholder {
+.form-group input:focus::placeholder {
     color: #667eea;
     font-size: 12px;
     position: absolute;

@@ -57,10 +57,16 @@
                     Historique
                 </a>  
                 
+                 <a href="{{ url_for('notification.page_notification') }}" class="{% if active_page == 'notification' %}active{% endif %}">
+                    <i class="fa-solid fa-envelope-open-text"></i>
+                    Notification
+                </a>
+
                 <a href="{{ url_for('apropos.apropos') }}" class="{% if active_page == 'apropos' %}active{% endif %}">
                     <i class="fa-solid fa-circle-info"></i>
                     À propos
                 </a>
+
                   
                 <div class="menu-separator"></div>
 

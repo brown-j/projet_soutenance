@@ -1,8 +1,6 @@
 from database.db import get_connection
 from datetime import datetime, timedelta
 
-
-
 def format_date_description(date_str):
     """
     Formate une description intelligente de la date:
@@ -88,7 +86,6 @@ def format_date_description(date_str):
     else:
         return f"Il y a {years_diff} ans"
 
-
 def get_all_presences():
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
@@ -109,7 +106,6 @@ def get_all_presences():
     conn.close()
 
     return presences
-
 
 def get_presences_by_date(date_obj):
     """
@@ -175,3 +171,90 @@ def get_presences_by_date(date_obj):
     cursor.close()
     conn.close()
     return resultats
+
+def log_attendance(employe_id):
+    """
+    Enregistre un passage dans la table 'pointages'.
+    Gère l'anti-spam (1 min) et définit le type d'action (ENTREE ou PASSAGE).
+    """
+    now = datetime.now()
+    
+    try:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True) # dictionary=True pour faciliter la lecture
+
+        # 1. On cherche le dernier passage de cet employé AUJOURD'HUI
+        query_check = """
+            SELECT timestamp, type_action 
+            FROM pointages 
+            WHERE employe_id = %s AND DATE(timestamp) = CURDATE() 
+            ORDER BY timestamp DESC LIMIT 1
+        """
+        cursor.execute(query_check, (employe_id,))
+        last_pointage = cursor.fetchone()
+
+        action = "ENTREE" # Par défaut, si c'est le premier de la journée
+        
+        if last_pointage:
+            # Calcul de l'écart entre maintenant et le dernier passage
+            derniere_vue = last_pointage['timestamp']
+            diff = now - derniere_vue
+
+            # --- ANTI-SPAM ---
+            # Si on l'a vu il y a moins de 60 secondes, on n'enregistre rien
+            if diff.total_seconds() < 60:
+                print(f"⏳ Scan ignoré pour {employe_id} (Trop récent)")
+                return True 
+
+            # Si on l'a déjà vu aujourd'hui, le type devient "PASSAGE"
+            action = "PASSAGE"
+
+        # 2. Insertion du nouveau pointage
+        query_insert = """
+            INSERT INTO pointages (employe_id, timestamp, type_action)
+            VALUES (%s, %s, %s)
+        """
+        # On laisse MySQL gérer le timestamp ou on l'envoie manuellement
+        cursor.execute(query_insert, (employe_id, now, action))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        print(f"✅ [{action}] Enregistré pour l'ID {employe_id} à {now.strftime('%H:%M:%S')}")
+        return True
+
+    except Exception as e:
+        print(f"❌ Erreur SQL pointages : {e}")
+        return False
+
+
+def log_multiple_attendances(new_detected_ids):
+    """
+    Optimisation par soustraction d'ensembles :
+    - Détecte qui vient d'arriver (new - last) -> Logique d'enregistrement
+    - Détecte qui vient de partir (last - new) -> Optionnel : Logique de sortie
+    - Met à jour le cache global
+    """
+    
+    global last_seen_cache
+    
+    # Conversion de la liste reçue en Set pour des opérations ultra-rapides
+    current_ids = set(new_detected_ids)
+    
+    # 1. ANALYSE : Qui vient d'entrer dans le champ de la caméra ?
+    to_log_in = current_ids - last_seen_cache
+
+    # ENREGISTREMENT DES ENTRÉES/MOUVEMENTS
+    if to_log_in:
+        print(f"--- Nouveaux mouvements détectés : {len(to_log_in)} ---")
+        for emp_id in to_log_in:
+            resultat = log_attendance(emp_id)
+            if resultat:
+                print(f"✅ Enregistré : id={emp_id}")
+            else:
+                print(f"❌ Échec SQL : id={emp_id}")
+
+    # 3. MISE À JOUR DU CACHE : Le nouveau cache devient les IDs actuels
+    last_seen_cache = current_ids
+    
