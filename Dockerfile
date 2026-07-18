@@ -7,6 +7,7 @@ ENV PYTHONUNBUFFERED=1
 # Optimisation pour la compilation de dlib (face-recognition) sur des petits serveurs
 ENV MAKEFLAGS="-j1"
 ENV CMAKE_BUILD_PARALLEL_LEVEL=1
+ENV DEBIAN_FRONTEND=noninteractive
 
 # 3. Dépendances système (Version compatible Debian Trixie/Slim)
 RUN apt-get update && apt-get install -y \
